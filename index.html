@@ -131,22 +131,23 @@
                             `Landmark: ${buyerLandmark}\n\n` +
                             `Direct map link: ${googleMapsUrl}`;
 
-          // AUTO-COPY NG DETAILS SA CLIPBOARD
+          // AUTOMATIC REDIRECT FUNCTION WITH AUTOPASTE
+          const redirectWithAutopaste = () => {
+            if (sellerPage) {
+              const encodedMessage = encodeURIComponent(shareText);
+              window.location.href = `https://m.me/${sellerPage}?text=${encodedMessage}`;
+            } else {
+              alert("Na-copy na ang details! Pwede mo nang i-paste sa chat ng Seller.");
+            }
+          };
+
+          // AUTO-COPY NG DETAILS SA CLIPBOARD AT REDIRECT
           navigator.clipboard.writeText(shareText).then(() => {
             statusEl.innerText = "Na-copy na ang detalye! Dinidirekta ka na sa Messenger...";
-            
-            setTimeout(() => {
-              // DERETSO REDIRECT SA M.ME BASE SA BINIGAY MO SA LINK (?page=...)
-              if (sellerPage) {
-                window.location.href = `https://m.me/${sellerPage}`;
-              } else {
-                alert("Na-copy na ang details! Pwede mo nang i-paste sa chat ng Seller.");
-              }
-            }, 1200);
+            setTimeout(redirectWithAutopaste, 1200);
           }).catch(() => {
-            if (sellerPage) {
-              window.location.href = `https://m.me/${sellerPage}`;
-            }
+            // BACKUP REDIRECT KUNG SAKALING MAG-FAIL ANG CLIPBOARD PERMISSION
+            redirectWithAutopaste();
           });
         },
         (err) => {
