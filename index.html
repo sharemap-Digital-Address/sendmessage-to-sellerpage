@@ -148,14 +148,22 @@
     }
 
     // Basahin ang data galing sa Gateway Form (localStorage)
-    const buyerName = localStorage.getItem('sharemap_fullname') || "Hindi naisulat";
-    const buyerPhone = localStorage.getItem('sharemap_phone') || "Hindi naisulat";
+    const buyerName = localStorage.getItem('sharemap_fullname');
+    const buyerPhone = localStorage.getItem('sharemap_phone');
     const buyerLandmark = localStorage.getItem('sharemap_landmark') || "Wala";
+
+    // Automatic redirect sa gateway form kapag walang nahanap na data
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPassedFromGateway = urlParams.get('pass') === 'true';
+
+    if ((!buyerName || !buyerPhone) && !isPassedFromGateway) {
+      window.location.href = "./gateway.html";
+    }
 
     window.addEventListener("DOMContentLoaded", () => {
       // Ipakita sa screen ang detalye para sa buyer
-      document.getElementById("dispName").innerText = buyerName;
-      document.getElementById("dispPhone").innerText = buyerPhone;
+      document.getElementById("dispName").innerText = buyerName || "Hindi naisulat";
+      document.getElementById("dispPhone").innerText = buyerPhone || "Hindi naisulat";
       document.getElementById("dispLandmark").innerText = buyerLandmark;
 
       if (isMessengerBrowser()) {
@@ -238,8 +246,8 @@
           // MISMONG FORMAT NA IPAPADALA SA SELLER
           const shareText = `📍 Pin Location\n` +
                             `Digital address (plusCode): ${plusCode}\n\n` +
-                            `Name: ${buyerName}\n` +
-                            `Mobile number: ${buyerPhone}\n` +
+                            `Name: ${buyerName || "Hindi naisulat"}\n` +
+                            `Mobile number: ${buyerPhone || "Hindi naisulat"}\n` +
                             `Landmark: ${buyerLandmark}\n\n` +
                             `Direct map link:`;
 
