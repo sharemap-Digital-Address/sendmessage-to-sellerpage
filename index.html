@@ -5,106 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instant Delivery Location Share</title>
 
-  <!-- OPEN GRAPH META TAGS -->
-  <meta property="og:title" content="📍 Instant Delivery Location Share">
-  <meta property="og:description" content="Pindutin para ma-share agad ang inyong Digital Address (Plus Code) para sa delivery.">
-  <meta property="og:image" content="https://maximizer-share-location.github.io/digital-address-byDevAdmin-JayromePevidal/1788426150049_transfer_2026-09-03_195332.png">
-  <meta property="og:url" content="https://maximizer-share-location.github.io/digital-address-byDevAdmin-JayromePevidal/">
-  <meta property="og:type" content="website">
-
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      padding: 20px; 
-      text-align: center;
-      background-color: #f4f7f6;
-    }
-    .card {
-      background: #ffffff;
-      padding: 25px 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 400px;
-      margin: 10px auto;
-    }
-    .share-btn { 
-      background-color: #0084FF; 
-      color: white; 
-      padding: 16px 24px; 
-      border: none; 
-      border-radius: 8px; 
-      font-weight: bold; 
-      font-size: 18px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 15px;
-    }
-    .share-btn:active {
-      background-color: #006bce;
-    }
-    .status-msg {
-      font-size: 13px;
-      color: #0084FF;
-      margin-top: 12px;
-      font-weight: bold;
-      line-height: 1.4;
-    }
-    .status-msg.error {
-      color: #d93025;
-    }
-    
-    /* Box para sa nakuhang Buyer Info */
-    .buyer-info-box {
-      background-color: #f8f9fa;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 12px 15px;
-      text-align: left;
-      font-size: 13px;
-      color: #333;
-      margin-bottom: 15px;
-    }
-    .buyer-info-box h4 {
-      margin: 0 0 8px 0;
-      color: #0084FF;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .buyer-info-item {
-      margin-bottom: 4px;
-      word-break: break-word;
-    }
-
-    .instruction-box {
-      background-color: #eef6ff;
-      border-left: 4px solid #0084FF;
-      padding: 10px 12px;
-      font-size: 12px;
-      color: #333;
-      text-align: left;
-      border-radius: 4px;
-      margin-top: 15px;
-      line-height: 1.4;
-    }
-    .messenger-alert {
-      display: none;
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-      padding: 12px 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      text-align: left;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    .copyright-footer {
-      margin-top: 25px;
-      font-size: 12px;
-      color: #777777;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
+    .card { background: #ffffff; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 10px auto; }
+    .share-btn { background-color: #0084FF; color: white; padding: 16px 24px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; width: 100%; margin-top: 15px; }
+    .status-msg { font-size: 13px; color: #0084FF; margin-top: 12px; font-weight: bold; line-height: 1.4; }
+    .status-msg.error { color: #d93025; }
+    .buyer-info-box { background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; text-align: left; font-size: 13px; color: #333; margin-bottom: 15px; }
+    .buyer-info-box h4 { margin: 0 0 8px 0; color: #0084FF; font-size: 14px; }
+    .buyer-info-item { margin-bottom: 4px; word-break: break-word; }
+    .instruction-box { background-color: #eef6ff; border-left: 4px solid #0084FF; padding: 10px 12px; font-size: 12px; color: #333; text-align: left; border-radius: 4px; margin-top: 15px; line-height: 1.4; }
+    .messenger-alert { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 13px; line-height: 1.4; }
+    .copyright-footer { margin-top: 25px; font-size: 12px; color: #777777; }
   </style>
 </head>
 <body>
@@ -117,7 +29,6 @@
 
     <h3>📍 Delivery Location Share</h3>
 
-    <!-- DITO IPAPAKITA ANG PINILAPAN NG BUYER -->
     <div id="buyerDetailsDisplay" class="buyer-info-box">
       <h4>📋 Impormasyon sa Delivery:</h4>
       <div class="buyer-info-item">👤 <b>Pangalan:</b> <span id="dispName">-</span></div>
@@ -134,8 +45,7 @@
     <p id="status" class="status-msg"></p>
 
     <div class="instruction-box">
-      <strong>💡 Paalala:</strong> Siguraduhing <b>naka-ON ang GPS/Location</b> ng iyong phone at i-tap ang <b>"Allow"</b> kapag nag-prompt ang browser.<br><br>
-      <strong>📌 Kung may error sa Messenger:</strong> I-tap ang <b>3 tuldok (⋮)</b> sa itaas ng screen at piliin ang <b>"Open in Chrome / External Browser"</b>.
+      <strong>💡 Paalala:</strong> Siguraduhing <b>naka-ON ang GPS/Location</b> ng iyong phone at i-tap ang <b>"Allow"</b> kapag nag-prompt ang browser.
     </div>
   </div>
 
@@ -147,30 +57,21 @@
       return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
     }
 
-    // Basahin ang data galing sa Gateway Form (localStorage)
     const buyerName = localStorage.getItem('sharemap_fullname');
     const buyerPhone = localStorage.getItem('sharemap_phone');
     const buyerLandmark = localStorage.getItem('sharemap_landmark') || "Wala";
 
-    // Automatic redirect sa gateway form kapag walang nahanap na data
     const urlParams = new URLSearchParams(window.location.search);
-    const isPassedFromGateway = urlParams.get('pass') === 'true';
-
-    if ((!buyerName || !buyerPhone) && !isPassedFromGateway) {
-      window.location.href = "./gateway.html";
-    }
+    const sellerPage = urlParams.get('page') || ''; // KINUKUHA ANG PAGE SA LINK
 
     window.addEventListener("DOMContentLoaded", () => {
-      // Ipakita sa screen ang detalye para sa buyer
       document.getElementById("dispName").innerText = buyerName || "Hindi naisulat";
       document.getElementById("dispPhone").innerText = buyerPhone || "Hindi naisulat";
       document.getElementById("dispLandmark").innerText = buyerLandmark;
 
       if (isMessengerBrowser()) {
         const noticeEl = document.getElementById("messengerNotice");
-        if (noticeEl) {
-          noticeEl.style.display = "block";
-        }
+        if (noticeEl) noticeEl.style.display = "block";
       }
     });
 
@@ -179,15 +80,10 @@
         const currentUrl = window.location.href;
         const cleanUrl = currentUrl.replace(/^https?:\/\//, '');
         const chromeIntent = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
-
-        const statusEl = document.getElementById("status");
-        statusEl.classList.remove("error");
-        statusEl.innerText = "Binubuksan sa Chrome Browser... Paki-tap ang 'CONTINUE' sa lumabas na prompt.";
-
+        document.getElementById("status").innerText = "Binubuksan sa Chrome Browser... Paki-tap ang 'CONTINUE'.";
         window.location.href = chromeIntent;
         return;
       }
-
       executeLocationShare();
     }
 
@@ -195,31 +91,17 @@
       lat = Math.min(Math.max(lat, -90), 90);
       lng = ((lng + 180) % 360 + 360) % 360 - 180;
       if (lat === 90) lat = 89.999999;
-
-      let latVal = lat + 90;
-      let lngVal = lng + 180;
-      let code = "";
-
-      let latPlace = 20;
-      let lngPlace = 20;
+      let latVal = lat + 90, lngVal = lng + 180, code = "", latPlace = 20, lngPlace = 20;
 
       for (let i = 0; i < 4; i++) {
-        let d1 = Math.floor(latVal / latPlace);
-        let d2 = Math.floor(lngVal / lngPlace);
-        latVal -= d1 * latPlace;
-        lngVal -= d2 * lngPlace;
+        let d1 = Math.floor(latVal / latPlace), d2 = Math.floor(lngVal / lngPlace);
+        latVal -= d1 * latPlace; lngVal -= d2 * lngPlace;
         code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
-        
-        latPlace /= 20;
-        lngPlace /= 20;
+        latPlace /= 20; lngPlace /= 20;
       }
-
       code += "+";
-
-      let d1 = Math.floor(latVal / latPlace);
-      let d2 = Math.floor(lngVal / lngPlace);
+      let d1 = Math.floor(latVal / latPlace), d2 = Math.floor(lngVal / lngPlace);
       code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
-
       return code;
     }
 
@@ -239,49 +121,37 @@
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
-
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          // MISMONG FORMAT NA IPAPADALA SA SELLER
           const shareText = `📍 Pin Location\n` +
                             `Digital address (plusCode): ${plusCode}\n\n` +
                             `Name: ${buyerName || "Hindi naisulat"}\n` +
                             `Mobile number: ${buyerPhone || "Hindi naisulat"}\n` +
                             `Landmark: ${buyerLandmark}\n\n` +
-                            `Direct map link:`;
+                            `Direct map link: ${googleMapsUrl}`;
 
-          statusEl.innerText = "Nakuha na ang lokasyon!";
-
-          if (navigator.share) {
-            navigator.share({
-              title: 'Aking Delivery Location',
-              text: shareText,
-              url: googleMapsUrl
-            })
-            .then(() => {
-              statusEl.innerText = "";
-            })
-            .catch((err) => {
-              console.log('Canceled:', err);
-              statusEl.innerText = "Kanselado ang pag-share.";
-            });
-          } else {
-            const copyFull = `${shareText} ${googleMapsUrl}`;
-            navigator.clipboard.writeText(copyFull);
-            alert(`Na-copy na ang iyong Delivery Address & Details! Pwede mo na itong i-paste sa Messenger.`);
-            statusEl.innerText = "";
-          }
+          // AUTO-COPY NG DETAILS SA CLIPBOARD
+          navigator.clipboard.writeText(shareText).then(() => {
+            statusEl.innerText = "Na-copy na ang detalye! Dinidirekta ka na sa Messenger...";
+            
+            setTimeout(() => {
+              // DERETSO REDIRECT SA M.ME BASE SA BINIGAY MO SA LINK (?page=...)
+              if (sellerPage) {
+                window.location.href = `https://m.me/${sellerPage}`;
+              } else {
+                alert("Na-copy na ang details! Pwede mo nang i-paste sa chat ng Seller.");
+              }
+            }, 1200);
+          }).catch(() => {
+            if (sellerPage) {
+              window.location.href = `https://m.me/${sellerPage}`;
+            }
+          });
         },
         (err) => {
           statusEl.classList.add("error");
-          if (err.code === err.PERMISSION_DENIED) {
-            statusEl.innerText = "⚠️ Na-block ang Location. Paki-ALLOW ang location permission sa browser settings.";
-          } else if (err.code === err.TIMEOUT) {
-            statusEl.innerText = "⚠️ Na-timeout ang pagkuha ng lokasyon. Pakisubukang pindutin ulit.";
-          } else {
-            statusEl.innerText = "⚠️ Siguraduhing NAKA-ON ang Location/GPS sa iyong phone at subukan ulit.";
-          }
+          statusEl.innerText = "⚠️ Siguraduhing NAKA-ON ang Location/GPS sa iyong phone at subukan ulit.";
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
