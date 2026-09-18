@@ -252,7 +252,7 @@
       return code;
     }
 
-        function executeLocationShare() {
+            async function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
 
@@ -270,7 +270,7 @@
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
 
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
+        (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const plusCode = encodeStandardPlusCode(lat, lng);
@@ -278,36 +278,24 @@
 
           const shareText = `📍 Pin Location\nDigital address (plusCode): ${plusCode}\n\nName: ${finalName}\nMobile number: ${finalPhone}\nLandmark: ${finalLandmark}\n\nDirect map link: ${googleMapsUrl}`;
 
-          statusEl.innerText = "Nakuha na ang lokasyon! Inihahanda ang short link...";
+          statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
 
-          // 1. Target Messenger URL
+          // 1. Direct Messenger Link (Ito ang UNANG AAKSYONAN ng browser)
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
-          
-          // 2. ShrinkEarn API Call
+
+          // 2. ShrinkEarn API Link
           const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
           const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
+          // LILIKHA NG BACKGROUND TAB PARA SA SHRINKEARN AD
           try {
-            // Kunin ang mismong short link mula sa API response
-            const res = await fetch(apiUrl);
-            const data = await res.json();
-
-            if (data.status === "success" && data.shortenedUrl) {
-              // Buksan ang totoong ShrinkEarn short link (hal. https://xpshort.com/...) sa bagong tab
-              window.open(data.shortenedUrl, '_blank');
-            } else {
-              // Fallback kung sakaling mag-fail ang API
-              window.open(messengerUrl, '_blank');
-            }
-          } catch (e) {
-            console.error("API Error:", e);
+            window.open(apiUrl, '_blank');
+          } catch(e) {
+            console.log("Ad window blocked or ignored");
           }
 
-          // 3. I-redirect ang kasalukuyang tab sa Messenger (FB App Intent fallback)
-          statusEl.innerText = "Binubuksan ang Messenger...";
-          setTimeout(() => {
-            window.location.href = `fb://messaging/${encodeURIComponent(pageId)}`;
-          }, 500);
+          // AGAD DIRETSO SA MESSENGER SA MAIN TAB (WALANG DELAY SA CUSTOMER)
+          window.location.href = messengerUrl;
         },
         (err) => {
           statusEl.classList.add("error");
