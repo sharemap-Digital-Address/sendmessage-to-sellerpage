@@ -249,7 +249,7 @@
       code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       return code;
     }
-
+    
     async function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
@@ -268,7 +268,7 @@
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const plusCode = encodeStandardPlusCode(lat, lng);
@@ -277,26 +277,33 @@
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
-          statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
+          statusEl.innerText = "Inihahanda ang link...";
 
-          // 1. UNA: Direct redirect agad sa Messenger window
-          window.location.href = messengerUrl;
+          const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
+          const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
-          // 2. SUNOD: Maghihintay ng 1.5 minuto (90,000 ms) bago hingin ang ShrinkEarn link at ibukas ang ad
-          setTimeout(async () => {
-            const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
-            const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
+          let adUrl = null;
 
-            try {
-              const res = await fetch(apiUrl);
-              const data = await res.json();
-              if (data && data.shortenedUrl) {
-                window.open(data.shortenedUrl, '_blank');
-              }
-            } catch (e) {
-              console.log("ShrinkEarn fetch bypassed or blocked");
+          // 1. KUNIN MUNA ANG SHRINKEARN LINK HABANG YUMAYANIG PA ANG USER INTERACTION
+          try {
+            const res = await fetch(apiUrl);
+            const data = await res.json();
+            if (data && data.shortenedUrl) {
+              adUrl = data.shortenedUrl;
             }
-          }, 1000); // 90000 ms = 1.5 minutes
+          } catch (e) {
+            console.log("ShrinkEarn fetch bypass");
+          }
+
+          // 2. BUKASAN ANG AD TAB AGAD
+          if (adUrl) {
+            window.open(adUrl, '_blank');
+          }
+
+          // 3. GAMITIN MULA 100ms - 200ms DELAY BAGO LUMIPAT SA MESSENGER
+          setTimeout(() => {
+            window.location.href = messengerUrl;
+          }, 150); // 150 ms ang pinakaswabeng timpla
         },
         (err) => {
           statusEl.classList.add("error");
@@ -311,6 +318,7 @@
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
+
 
   </script>
 
