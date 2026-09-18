@@ -12,3 +12,22 @@ Hindi gagana ang auto-sulat sa chatbox kung personal account ang gagamitin.
 
 Seller Link Format:
 https://sharemap-digital-address.github.io/sharemap-seller/gateway.html?page=YOUR_PAGE_USERNAME
+
+
+
+sharemap-sendmessage-sellerpage
+
+📍 **SELLER PAGE ONLY** - Direct GPS Location & Digital Address Router to Facebook Page Messenger.
+
+Ang tool na ito ay ginawa para sa mga online seller na may **Facebook Page**. Pinapahintulutan nito ang mga buyer na mag-share ng kanilang eksaktong GPS Location (Google Maps Link & Plus Code) at delivery details diretso sa Messenger ng Page.
+
+⚠️ **PAALALA:** Para sa Facebook PAGE lamang ito gagana (`m.me/PageID`). HINDI ito gagana sa mga Personal Facebook Profile.
+
+---
+
+### 🔗 Seller Link Format
+
+Ibahagi ang link na ito sa iyong mga buyer (palitan ang `PAGE_ID_OR_USERNAME` ng Numeric ID o Username ng iyong FB Page):
+
+
+https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME
