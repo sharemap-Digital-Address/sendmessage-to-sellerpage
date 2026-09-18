@@ -252,7 +252,7 @@
       return code;
     }
 
-    async function executeLocationShare() {
+     async function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
 
@@ -276,26 +276,26 @@
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          const shareText = `📍 Pin Location\nDigital address (plusCode): ${plusCode}\n\nName: ${finalName}\nMobile number: ${finalPhone}\nLandmark: ${finalLandmark}\n\nDirect map link: ${googleMapsUrl}`;
+          // Format ng text (walang emojis o complex characters sa URL scheme para maiwasan ang DNS error)
+          const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
 
           statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
 
-          // 1. Direct Messenger Link (Ito ang UNANG AAKSYONAN ng browser)
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
-
-          // 2. ShrinkEarn API Link
           const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
           const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
-          // LILIKHA NG BACKGROUND TAB PARA SA SHRINKEARN AD
+          // 1. Buksan ang ShrinkEarn Ad sa bagong tab
           try {
             window.open(apiUrl, '_blank');
           } catch(e) {
-            console.log("Ad window blocked or ignored");
+            console.log("Ad tab blocked");
           }
 
-          // AGAD DIRETSO SA MESSENGER SA MAIN TAB (WALANG DELAY SA CUSTOMER)
-          window.location.href = messengerUrl;
+          // 2. I-redirect ang kasalukuyang tab sa Messenger (may 300ms delay para hindi mag-collision sa network)
+          setTimeout(() => {
+            window.location.href = messengerUrl;
+          }, 300);
         },
         (err) => {
           statusEl.classList.add("error");
