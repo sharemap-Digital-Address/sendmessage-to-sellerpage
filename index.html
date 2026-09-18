@@ -1,22 +1,128 @@
 <!DOCTYPE html>
 <html lang="tl">
-<head>
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Instant Delivery Location Share</title>
 
+  <!-- OPEN GRAPH META TAGS -->
+  <meta property="og:title" content="📍 Instant Delivery Location Share">
+  <meta property="og:description" content="Pindutin para ma-share agad ang inyong Digital Address (Plus Code) para sa delivery.">
+  <meta property="og:image" content="https://maximizer-share-location.github.io/digital-address-byDevAdmin-JayromePevidal/1788426150049_transfer_2026-09-03_195332.png">
+  <meta property="og:url" content="https://maximizer-share-location.github.io/digital-address-byDevAdmin-JayromePevidal/">
+  <meta property="og:type" content="website">
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
-    .card { background: #ffffff; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 10px auto; }
-    .share-btn { background-color: #0084FF; color: white; padding: 16px 24px; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; width: 100%; margin-top: 15px; }
-    .status-msg { font-size: 13px; color: #0084FF; margin-top: 12px; font-weight: bold; line-height: 1.4; }
-    .status-msg.error { color: #d93025; }
-    .buyer-info-box { background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; text-align: left; font-size: 13px; color: #333; margin-bottom: 15px; }
-    .buyer-info-box h4 { margin: 0 0 8px 0; color: #0084FF; font-size: 14px; }
-    .buyer-info-item { margin-bottom: 4px; word-break: break-word; }
-    .instruction-box { background-color: #eef6ff; border-left: 4px solid #0084FF; padding: 10px 12px; font-size: 12px; color: #333; text-align: left; border-radius: 4px; margin-top: 15px; line-height: 1.4; }
-    .messenger-alert { display: none; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 13px; line-height: 1.4; }
-    .copyright-footer { margin-top: 25px; font-size: 12px; color: #777777; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      text-align: center;
+      background-color: #f4f7f6;
+    }
+    .card {
+      background: #ffffff;
+      padding: 25px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: 10px auto;
+    }
+    .share-btn { 
+      background-color: #0084FF; 
+      color: white; 
+      padding: 16px 24px; 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: bold; 
+      font-size: 18px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .share-btn:active {
+      background-color: #006bce;
+    }
+    .status-msg {
+      font-size: 13px;
+      color: #0084FF;
+      margin-top: 12px;
+      font-weight: bold;
+      line-height: 1.4;
+    }
+    .status-msg.error {
+      color: #d93025;
+    }
+    .buyer-info-box {
+      background-color: #f8f9fa;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 13px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+    .buyer-info-box h4 {
+      margin: 0 0 8px 0;
+      color: #0084FF;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .buyer-info-item {
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .instruction-box {
+      background-color: #eef6ff;
+      border-left: 4px solid #0084FF;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #333;
+      text-align: left;
+      border-radius: 4px;
+      margin-top: 15px;
+      line-height: 1.4;
+    }
+    .messenger-alert {
+      display: none;
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .copyright-footer {
+      margin-top: 25px;
+      font-size: 12px;
+      color: #777777;
+    }
   </style>
 </head>
 <body>
@@ -34,9 +140,10 @@
       <div class="buyer-info-item">👤 <b>Pangalan:</b> <span id="dispName">-</span></div>
       <div class="buyer-info-item">📞 <b>Contact:</b> <span id="dispPhone">-</span></div>
       <div class="buyer-info-item">🏠 <b>Landmark:</b> <span id="dispLandmark">-</span></div>
+      <div class="buyer-info-item">📩 <b>Isesend kay:</b> <span id="dispPage">-</span></div>
     </div>
 
-    <p style="font-size: 13px; color: #555;">Pindutin ang button sa ibaba para ma-share agad ang inyong Digital Address (Plus Code) kasama ang inyong details sa Seller.</p>
+    <p style="font-size: 13px; color: #555;">Pindutin ang button sa ibaba para ma-share agad ang inyong Digital Address (Plus Code) kasama ang inyong details diretso sa Messenger ng Seller.</p>
 
     <button id="mainShareBtn" class="share-btn" onclick="handleMainButtonClick()">
       📤 Pindutin para I-share sa Messenger
@@ -45,7 +152,8 @@
     <p id="status" class="status-msg"></p>
 
     <div class="instruction-box">
-      <strong>💡 Paalala:</strong> Siguraduhing <b>naka-ON ang GPS/Location</b> ng iyong phone at i-tap ang <b>"Allow"</b> kapag nag-prompt ang browser.
+      <strong>💡 Paalala:</strong> Siguraduhing <b>naka-ON ang GPS/Location</b> ng iyong phone at i-tap ang <b>"Allow"</b> kapag nag-prompt ang browser.<br><br>
+      <strong>📌 Pag bukas ng Messenger:</strong> Pindutin nalang ang <b>SEND</b> para ma-chat ang details at location.
     </div>
   </div>
 
@@ -57,17 +165,38 @@
       return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
     }
 
-    const buyerName = localStorage.getItem('sharemap_fullname');
-    const buyerPhone = localStorage.getItem('sharemap_phone');
+    function getPageId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('page') || localStorage.getItem('sharemap_page') || "TechSavyBoy.SketchDevPro";
+    }
+
+    const buyerName = localStorage.getItem('sharemap_fullname') || "Hindi naisulat";
+    const buyerPhone = localStorage.getItem('sharemap_phone') || "Hindi naisulat";
     const buyerLandmark = localStorage.getItem('sharemap_landmark') || "Wala";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sellerPage = urlParams.get('page') || ''; // KINUKUHA ANG PAGE SA LINK
-
     window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("dispName").innerText = buyerName || "Hindi naisulat";
-      document.getElementById("dispPhone").innerText = buyerPhone || "Hindi naisulat";
+      const pageId = getPageId();
+      localStorage.setItem('sharemap_page', pageId);
+
+      document.getElementById("dispName").innerText = buyerName;
+      document.getElementById("dispPhone").innerText = buyerPhone;
       document.getElementById("dispLandmark").innerText = buyerLandmark;
+      document.getElementById("dispPage").innerText = pageId;
+
+      // restore from URL if meron
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('fn')) {
+        document.getElementById("dispName").innerText = urlParams.get('fn');
+        localStorage.setItem('sharemap_fullname', urlParams.get('fn'));
+      }
+      if (urlParams.get('ph')) {
+        document.getElementById("dispPhone").innerText = urlParams.get('ph');
+        localStorage.setItem('sharemap_phone', urlParams.get('ph'));
+      }
+      if (urlParams.get('lm')) {
+        document.getElementById("dispLandmark").innerText = urlParams.get('lm');
+        localStorage.setItem('sharemap_landmark', urlParams.get('lm'));
+      }
 
       if (isMessengerBrowser()) {
         const noticeEl = document.getElementById("messengerNotice");
@@ -78,9 +207,17 @@
     function handleMainButtonClick() {
       if (isMessengerBrowser()) {
         const currentUrl = window.location.href;
-        const cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+        // siguraduhin kasama page param sa chrome intent
+        let finalUrl = currentUrl;
+        if (!finalUrl.includes('page=')) {
+            finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'page=' + encodeURIComponent(getPageId());
+        }
+        const cleanUrl = finalUrl.replace(/^https?:\/\//, '');
         const chromeIntent = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
-        document.getElementById("status").innerText = "Binubuksan sa Chrome Browser... Paki-tap ang 'CONTINUE'.";
+
+        const statusEl = document.getElementById("status");
+        statusEl.classList.remove("error");
+        statusEl.innerText = "Binubuksan sa Chrome Browser... Paki-tap ang 'CONTINUE' sa lumabas na prompt.";
         window.location.href = chromeIntent;
         return;
       }
@@ -91,16 +228,25 @@
       lat = Math.min(Math.max(lat, -90), 90);
       lng = ((lng + 180) % 360 + 360) % 360 - 180;
       if (lat === 90) lat = 89.999999;
-      let latVal = lat + 90, lngVal = lng + 180, code = "", latPlace = 20, lngPlace = 20;
+
+      let latVal = lat + 90;
+      let lngVal = lng + 180;
+      let code = "";
+      let latPlace = 20;
+      let lngPlace = 20;
 
       for (let i = 0; i < 4; i++) {
-        let d1 = Math.floor(latVal / latPlace), d2 = Math.floor(lngVal / lngPlace);
-        latVal -= d1 * latPlace; lngVal -= d2 * lngPlace;
+        let d1 = Math.floor(latVal / latPlace);
+        let d2 = Math.floor(lngVal / lngPlace);
+        latVal -= d1 * latPlace;
+        lngVal -= d2 * lngPlace;
         code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
-        latPlace /= 20; lngPlace /= 20;
+        latPlace /= 20;
+        lngPlace /= 20;
       }
       code += "+";
-      let d1 = Math.floor(latVal / latPlace), d2 = Math.floor(lngVal / lngPlace);
+      let d1 = Math.floor(latVal / latPlace);
+      let d2 = Math.floor(lngVal / lngPlace);
       code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       return code;
     }
@@ -108,6 +254,12 @@
     function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
+
+      // Kunin latest mula localStorage ulit
+      const finalName = localStorage.getItem('sharemap_fullname') || buyerName;
+      const finalPhone = localStorage.getItem('sharemap_phone') || buyerPhone;
+      const finalLandmark = localStorage.getItem('sharemap_landmark') || buyerLandmark;
+      const pageId = getPageId();
 
       if (!navigator.geolocation) {
         statusEl.classList.add("error");
@@ -124,37 +276,29 @@
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          const shareText = `📍 Pin Location\n` +
-                            `Digital address (plusCode): ${plusCode}\n\n` +
-                            `Name: ${buyerName || "Hindi naisulat"}\n` +
-                            `Mobile number: ${buyerPhone || "Hindi naisulat"}\n` +
-                            `Landmark: ${buyerLandmark}\n\n` +
-                            `Direct map link: ${googleMapsUrl}`;
+          const shareText = `📍 Pin Location\nDigital address (plusCode): ${plusCode}\n\nName: ${finalName}\nMobile number: ${finalPhone}\nLandmark: ${finalLandmark}\n\nDirect map link: ${googleMapsUrl}`;
 
-          // AUTOMATIC REDIRECT FUNCTION WITH AUTOPASTE
-          const redirectWithAutopaste = () => {
-            if (sellerPage) {
-              const encodedMessage = encodeURIComponent(shareText);
-              window.location.href = `https://m.me/${sellerPage}?text=${encodedMessage}`;
-            } else {
-              alert("Na-copy na ang details! Pwede mo nang i-paste sa chat ng Seller.");
-            }
-          };
+          statusEl.innerText = "Nakuha na ang lokasyon! Binubukas ang Messenger...";
 
-          // AUTO-COPY NG DETAILS SA CLIPBOARD AT REDIRECT
-          navigator.clipboard.writeText(shareText).then(() => {
-            statusEl.innerText = "Na-copy na ang detalye! Dinidirekta ka na sa Messenger...";
-            setTimeout(redirectWithAutopaste, 1200);
-          }).catch(() => {
-            // BACKUP REDIRECT KUNG SAKALING MAG-FAIL ANG CLIPBOARD PERMISSION
-            redirectWithAutopaste();
-          });
+          // DIRECT MESSENGER - WALANG POPUP SHARE MENU
+          const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
+          
+          // Small delay para makita yung status
+          setTimeout(() => {
+            window.location.href = messengerUrl;
+          }, 500);
         },
         (err) => {
           statusEl.classList.add("error");
-          statusEl.innerText = "⚠️ Siguraduhing NAKA-ON ang Location/GPS sa iyong phone at subukan ulit.";
+          if (err.code === err.PERMISSION_DENIED) {
+            statusEl.innerText = "⚠️ Na-block ang Location. Paki-ALLOW ang location permission sa browser settings.";
+          } else if (err.code === err.TIMEOUT) {
+            statusEl.innerText = "⚠️ Na-timeout ang pagkuha ng lokasyon. Pakisubukang pindutin ulit.";
+          } else {
+            statusEl.innerText = "⚠️ Siguraduhing NAKA-ON ang Location/GPS sa iyong phone at subukan ulit.";
+          }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
   </script>
@@ -163,5 +307,5 @@
     <p>© 2026 Maximizer Admin - Developed by Jayrome Pevidal. All rights reserved.</p>
   </footer>
 
-</body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
