@@ -296,7 +296,7 @@ async function executeLocationShare() {
             } catch (e) {
               console.log("ShrinkEarn fetch bypassed or blocked");
             }
-          }, 1000); // 90000 ms = 1.5 minutes
+          }, 150); // 90000 ms = 1.5 minutes
         },
         (err) => {
           statusEl.classList.add("error");
