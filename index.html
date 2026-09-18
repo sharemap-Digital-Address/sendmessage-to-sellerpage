@@ -184,7 +184,6 @@
       document.getElementById("dispLandmark").innerText = buyerLandmark;
       document.getElementById("dispPage").innerText = pageId;
 
-      // restore from URL if meron
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('fn')) {
         document.getElementById("dispName").innerText = urlParams.get('fn');
@@ -208,7 +207,6 @@
     function handleMainButtonClick() {
       if (isMessengerBrowser()) {
         const currentUrl = window.location.href;
-        // siguraduhin kasama page param sa chrome intent
         let finalUrl = currentUrl;
         if (!finalUrl.includes('page=')) {
             finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'page=' + encodeURIComponent(getPageId());
@@ -252,7 +250,7 @@
       return code;
     }
 
-     async function executeLocationShare() {
+    function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
 
@@ -276,7 +274,7 @@
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          // Format ng text (walang emojis o complex characters sa URL scheme para maiwasan ang DNS error)
+          // Pinaikling formatting upang maiwasan ang URL Query Limit / DNS Error sa Android
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
 
           statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
@@ -285,14 +283,14 @@
           const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
           const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
-          // 1. Buksan ang ShrinkEarn Ad sa bagong tab
+          // 1. Trigger ShrinkEarn Ads sa bagong tab
           try {
             window.open(apiUrl, '_blank');
           } catch(e) {
-            console.log("Ad tab blocked");
+            console.log("Ad window blocked or ignored");
           }
 
-          // 2. I-redirect ang kasalukuyang tab sa Messenger (may 300ms delay para hindi mag-collision sa network)
+          // 2. Direct Redirect sa Messenger na may safe network delay (300ms)
           setTimeout(() => {
             window.location.href = messengerUrl;
           }, 300);
@@ -310,7 +308,6 @@
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
-
   </script>
 
   <footer class="copyright-footer">
