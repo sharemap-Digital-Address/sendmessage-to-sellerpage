@@ -8,9 +8,9 @@ Ang tool na ito ay ginawa para sa mga online seller na may **Facebook Page**. Pi
 
 ---
 💡 Halimbawa ng mga Gumaganang Link:
-​Numeric Page ID: https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=61593851829877
+​Numeric Page ID: https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=61593851829877
 
-​Page Username: https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=titafernas
+​Page Username: https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=titafernas
 
 ​📂 File Structure
 
@@ -25,6 +25,6 @@ Ang tool na ito ay ginawa para sa mga online seller na may **Facebook Page**. Pi
 Ibahagi ang link na ito sa iyong mga buyer (palitan ang `PAGE_ID_OR_USERNAME` ng Numeric ID o Username ng iyong FB Page):
 
 
-https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME
+https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME
 
 
