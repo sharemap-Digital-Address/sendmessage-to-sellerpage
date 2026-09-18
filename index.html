@@ -268,42 +268,35 @@
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
 
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
+        (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          // Format ng text
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
           statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
 
-          // 1. Nauuna muna ang pagkuha sa ShrinkEarn Short URL para nakahanda na
-          const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
-          const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
-
-          let shortAdUrl = null;
-          try {
-            const res = await fetch(apiUrl);
-            const data = await res.json();
-            if (data && data.shortenedUrl) {
-              shortAdUrl = data.shortenedUrl;
-            }
-          } catch (e) {
-            console.log("ShrinkEarn fetch bypass");
-          }
-
-          // 2. NAUUNA NANG MAG-NAVIGATE ANG MAIN TAB SA MESSENGER (Para bukas agad ang chat)
+          // 1. UNA: Direct redirect agad sa Messenger window
           window.location.href = messengerUrl;
 
-          // 3. Pagkaraan ng 400ms delay, tiyak na bukas na ang Messenger request bago pumutok ang ad tab
-          if (shortAdUrl) {
-            setTimeout(() => {
-              window.open(shortAdUrl, '_blank');
-            }, 400);
-          }
+          // 2. SUNOD: Maghihintay ng 1.5 minuto (90,000 ms) bago hingin ang ShrinkEarn link at ibukas ang ad
+          setTimeout(async () => {
+            const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
+            const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
+
+            try {
+              const res = await fetch(apiUrl);
+              const data = await res.json();
+              if (data && data.shortenedUrl) {
+                window.open(data.shortenedUrl, '_blank');
+              }
+            } catch (e) {
+              console.log("ShrinkEarn fetch bypassed or blocked");
+            }
+          }, 90000); // 90000 ms = 1.5 minutes
         },
         (err) => {
           statusEl.classList.add("error");
