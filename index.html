@@ -250,7 +250,7 @@
       return code;
     }
     
-async function executeLocationShare() {
+    async function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
 
@@ -265,10 +265,13 @@ async function executeLocationShare() {
         return;
       }
 
+      // Suriin ang state/pass kung pumasok na dati sa Messenger
+      const isAlreadyPassed = localStorage.getItem("sharemap_pass_state") === "true";
+
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const plusCode = encodeStandardPlusCode(lat, lng);
@@ -277,26 +280,40 @@ async function executeLocationShare() {
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
-          statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
+          if (isAlreadyPassed) {
+            // STEP 2: KAPAG PASSED/TRUE NA (Pangalawang click o pagbalik sa tab) -> ShrinkEarn ang bubuksan
+            statusEl.innerText = "Inihahanda ang ad link...";
 
-          // 1. UNA: Direct redirect agad sa Messenger window
-          window.location.href = messengerUrl;
-
-          // 2. SUNOD: Maghihintay ng 1.5 minuto (90,000 ms) bago hingin ang ShrinkEarn link at ibukas ang ad
-          setTimeout(async () => {
             const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
             const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
+
+            // I-reset ang state pabalik sa false para sa susunod na gamit
+            localStorage.setItem("sharemap_pass_state", "false");
 
             try {
               const res = await fetch(apiUrl);
               const data = await res.json();
               if (data && data.shortenedUrl) {
-                window.open(data.shortenedUrl, '_blank');
+                window.location.href = data.shortenedUrl; // Diretso sa ShrinkEarn
+                return;
               }
             } catch (e) {
-              console.log("ShrinkEarn fetch bypassed or blocked");
+              console.log("ShrinkEarn fetch bypass");
             }
-          }, 150); // 90000 ms = 1.5 minutes
+            
+            // Fallback kung nag-fail ang API
+            window.location.href = messengerUrl;
+
+          } else {
+            // STEP 1: KAPAG FALSE PA -> Unang diretso muna sa Messenger Chatbox
+            statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
+            
+            // I-set ang pass state sa TRUE bago umalis patungong Messenger
+            localStorage.setItem("sharemap_pass_state", "true");
+
+            // Direct redirect sa Messenger
+            window.location.href = messengerUrl;
+          }
         },
         (err) => {
           statusEl.classList.add("error");
@@ -311,7 +328,6 @@ async function executeLocationShare() {
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     }
-
 
   </script>
 
