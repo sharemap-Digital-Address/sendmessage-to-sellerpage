@@ -154,7 +154,7 @@
 
     <div class="instruction-box">
       <strong>💡 Paalala:</strong> Siguraduhing <b>naka-ON ang GPS/Location</b> ng iyong phone at i-tap ang <b>"Allow"</b> kapag nag-prompt ang browser.<br><br>
-      <strong>📌 Pag bukas ng Messenger:</strong> Pindutin nalang ang <b>SEND</b> para ma-chat ang details at location.
+      <strong>📌 Pag bukas ng Messenger:</strong> Na-copy na rin sa Clipboard ang details! Pindutin nalang ang <b>SEND</b> o i-<b>PASTE</b> sa chatbox.
     </div>
   </div>
 
@@ -249,6 +249,36 @@
       code += ALPHABET.charAt(d1) + ALPHABET.charAt(d2);
       return code;
     }
+
+    // HELPER FUNCTION: Kopyahin ang text sa clipboard
+    async function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (err) {
+          console.log("Clipboard API failed, trying fallback...", err);
+        }
+      }
+      // Fallback para sa mga lumang mobile browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        textArea.remove();
+        return true;
+      } catch (err) {
+        console.error("Fallback copy failed", err);
+        textArea.remove();
+        return false;
+      }
+    }
     
     async function executeLocationShare() {
       const statusEl = document.getElementById("status");
@@ -280,9 +310,12 @@
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
+          // ISINAGAWA ANG CLIPBOARD COPY BAGO MAG-REDIRECT
+          await copyToClipboard(shareText);
+
           if (isAlreadyPassed) {
             // STEP 2: KAPAG PASSED/TRUE NA (Pangalawang click o pagbalik sa tab) -> ShrinkEarn ang bubuksan
-            statusEl.innerText = "Inihahanda ang ad link...";
+            statusEl.innerText = "Nai-copy sa clipboard! Inihahanda ang ad link...";
 
             const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
             const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
@@ -306,7 +339,7 @@
 
           } else {
             // STEP 1: KAPAG FALSE PA -> Unang diretso muna sa Messenger Chatbox
-            statusEl.innerText = "Nakuha na ang lokasyon! Binubuksan ang Messenger...";
+            statusEl.innerText = "Nai-copy sa clipboard! Binubuksan ang Messenger...";
             
             // I-set ang pass state sa TRUE bago umalis patungong Messenger
             localStorage.setItem("sharemap_pass_state", "true");
