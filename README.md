@@ -11,4 +11,4 @@ Hindi gagana ang auto-sulat sa chatbox kung personal account ang gagamitin.
 ❌ HINDI GAGANA: m.me/PersonalProfile
 
 Seller Link Format:
-https://sharemap.github.io/sharemap-seller/gateway.html?page=YOUR_PAGE_USERNAME
+https://sharemap-digital-address.github.io/sharemap-seller/gateway.html?page=YOUR_PAGE_USERNAME
