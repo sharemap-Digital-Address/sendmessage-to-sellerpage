@@ -9,9 +9,13 @@ Ang tool na ito ay ginawa para sa mga online seller na may **Facebook Page**. Pi
 ---
 💡 Halimbawa ng mga Gumaganang Link:
 ​Numeric Page ID: https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=61593851829877
+
 ​Page Username: https://sharemap-digital-address.github.io/sharemap-sendmessage-sellerpage/gateway.html?page=titafernas
+
 ​📂 File Structure
+
 ​gateway.html - Form para sa Name, Phone, at Landmark. May automatic Chrome intent handler kapag binuksan sa Messenger browser.
+
 ​index.html - Kinukuha ang eksaktong GPS coordinates ng device at nagre-redirect sa Messenger ng seller page kasama ang pre-filled details.
 
 ---
