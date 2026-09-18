@@ -252,11 +252,10 @@
       return code;
     }
 
-    function executeLocationShare() {
+        function executeLocationShare() {
       const statusEl = document.getElementById("status");
       statusEl.classList.remove("error");
 
-      // Kunin latest mula localStorage ulit
       const finalName = localStorage.getItem('sharemap_fullname') || buyerName;
       const finalPhone = localStorage.getItem('sharemap_phone') || buyerPhone;
       const finalLandmark = localStorage.getItem('sharemap_landmark') || buyerLandmark;
@@ -271,7 +270,7 @@
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const plusCode = encodeStandardPlusCode(lat, lng);
@@ -279,23 +278,36 @@
 
           const shareText = `📍 Pin Location\nDigital address (plusCode): ${plusCode}\n\nName: ${finalName}\nMobile number: ${finalPhone}\nLandmark: ${finalLandmark}\n\nDirect map link: ${googleMapsUrl}`;
 
-          statusEl.innerText = "Nakuha na ang lokasyon! Inihahanda ang Messenger...";
+          statusEl.innerText = "Nakuha na ang lokasyon! Inihahanda ang short link...";
 
-          // 1. Buuin ang dynamic m.me URL
+          // 1. Target Messenger URL
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
           
-          // 2. ShrinkEarn Direct API Link gamit ang iyong API Key
+          // 2. ShrinkEarn API Call
           const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
-          const shrinkEarnUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
+          const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
-          // 3. Dual-Action Execution:
-          // Bubukas ang ShrinkEarn ad link sa bagong tab
-          window.open(shrinkEarnUrl, '_blank');
+          try {
+            // Kunin ang mismong short link mula sa API response
+            const res = await fetch(apiUrl);
+            const data = await res.json();
 
-          // Agad ding magse-send at mag-i-load ang Messenger chatbox sa kasalukuyang tab
+            if (data.status === "success" && data.shortenedUrl) {
+              // Buksan ang totoong ShrinkEarn short link (hal. https://xpshort.com/...) sa bagong tab
+              window.open(data.shortenedUrl, '_blank');
+            } else {
+              // Fallback kung sakaling mag-fail ang API
+              window.open(messengerUrl, '_blank');
+            }
+          } catch (e) {
+            console.error("API Error:", e);
+          }
+
+          // 3. I-redirect ang kasalukuyang tab sa Messenger (FB App Intent fallback)
+          statusEl.innerText = "Binubuksan ang Messenger...";
           setTimeout(() => {
-            window.location.href = messengerUrl;
-          }, 300);
+            window.location.href = `fb://messaging/${encodeURIComponent(pageId)}`;
+          }, 500);
         },
         (err) => {
           statusEl.classList.add("error");
