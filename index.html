@@ -179,24 +179,35 @@
       const pageId = getPageId();
       localStorage.setItem('sharemap_page', pageId);
 
-      document.getElementById("dispName").innerText = buyerName;
-      document.getElementById("dispPhone").innerText = buyerPhone;
-      document.getElementById("dispLandmark").innerText = buyerLandmark;
-      document.getElementById("dispPage").innerText = pageId;
-
       const urlParams = new URLSearchParams(window.location.search);
+
+      // KAGAGAWAN NG BAGONG TRANSACTION: Kapag may pumasok na fn, ph, o lm galing sa gateway, I-RESET ANG PASS STATE sa false!
+      if (urlParams.get('fn') || urlParams.get('ph') || urlParams.get('lm')) {
+        localStorage.setItem("sharemap_pass_state", "false");
+      }
+
       if (urlParams.get('fn')) {
         document.getElementById("dispName").innerText = urlParams.get('fn');
         localStorage.setItem('sharemap_fullname', urlParams.get('fn'));
+      } else {
+        document.getElementById("dispName").innerText = buyerName;
       }
+
       if (urlParams.get('ph')) {
         document.getElementById("dispPhone").innerText = urlParams.get('ph');
         localStorage.setItem('sharemap_phone', urlParams.get('ph'));
+      } else {
+        document.getElementById("dispPhone").innerText = buyerPhone;
       }
+
       if (urlParams.get('lm')) {
         document.getElementById("dispLandmark").innerText = urlParams.get('lm');
         localStorage.setItem('sharemap_landmark', urlParams.get('lm'));
+      } else {
+        document.getElementById("dispLandmark").innerText = buyerLandmark;
       }
+
+      document.getElementById("dispPage").innerText = pageId;
 
       if (isMessengerBrowser()) {
         const noticeEl = document.getElementById("messengerNotice");
@@ -250,7 +261,6 @@
       return code;
     }
 
-    // HELPER FUNCTION: Kopyahin ang text sa clipboard
     async function copyToClipboard(text) {
       if (navigator.clipboard && window.isSecureContext) {
         try {
@@ -260,7 +270,6 @@
           console.log("Clipboard API failed, trying fallback...", err);
         }
       }
-      // Fallback para sa mga lumang mobile browsers
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed";
@@ -295,7 +304,6 @@
         return;
       }
 
-      // Suriin ang state/pass kung pumasok na dati sa Messenger
       const isAlreadyPassed = localStorage.getItem("sharemap_pass_state") === "true";
 
       statusEl.innerText = "Kinukuha ang lokasyon... Paki-allow ang prompt kapag lumabas.";
@@ -310,41 +318,34 @@
           const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
-          // ISINAGAWA ANG CLIPBOARD COPY BAGO MAG-REDIRECT
           await copyToClipboard(shareText);
 
           if (isAlreadyPassed) {
-            // STEP 2: KAPAG PASSED/TRUE NA (Pangalawang click o pagbalik sa tab) -> ShrinkEarn ang bubuksan
             statusEl.innerText = "Nai-copy sa clipboard! Inihahanda ang ad link...";
 
             const shrinkEarnApiKey = "72390817e7358998295f938255240f54bc93df6d";
             const apiUrl = `https://shrinkearn.com/api?api=${shrinkEarnApiKey}&url=${encodeURIComponent(messengerUrl)}`;
 
-            // I-reset ang state pabalik sa false para sa susunod na gamit
             localStorage.setItem("sharemap_pass_state", "false");
 
             try {
               const res = await fetch(apiUrl);
               const data = await res.json();
               if (data && data.shortenedUrl) {
-                window.location.href = data.shortenedUrl; // Diretso sa ShrinkEarn
+                window.location.href = data.shortenedUrl;
                 return;
               }
             } catch (e) {
               console.log("ShrinkEarn fetch bypass");
             }
             
-            // Fallback kung nag-fail ang API
             window.location.href = messengerUrl;
 
           } else {
-            // STEP 1: KAPAG FALSE PA -> Unang diretso muna sa Messenger Chatbox
             statusEl.innerText = "Nai-copy sa clipboard! Binubuksan ang Messenger...";
             
-            // I-set ang pass state sa TRUE bago umalis patungong Messenger
             localStorage.setItem("sharemap_pass_state", "true");
 
-            // Direct redirect sa Messenger
             window.location.href = messengerUrl;
           }
         },
