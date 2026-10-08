@@ -141,10 +141,11 @@
       <div class="buyer-info-item">👤 <b>Pangalan:</b> <span id="dispName">-</span></div>
       <div class="buyer-info-item">📞 <b>Contact:</b> <span id="dispPhone">-</span></div>
       <div class="buyer-info-item">🏠 <b>Landmark:</b> <span id="dispLandmark">-</span></div>
+      <div class="buyer-info-item">🛒 <b>Orders:</b> <span id="dispOrders">-</span></div>
       <div class="buyer-info-item">📩 <b>Isesend kay:</b> <span id="dispPage">-</span></div>
     </div>
 
-    <p style="font-size: 13px; color: #555;">Pindutin ang button sa ibaba para ma-share agad ang inyong Digital Address (Plus Code) kasama ang inyong details diretso sa Messenger ng Seller.</p>
+    <p style="font-size: 13px; color: #555;">Pindutin ang button sa ibaba para ma-share agad ang inyong Digital Address (Plus Code) kasama ang inyong details at orders diretso sa Messenger ng Seller.</p>
 
     <button id="mainShareBtn" class="share-btn" onclick="handleMainButtonClick()">
       📤 Pindutin para I-share sa Messenger
@@ -174,6 +175,7 @@
     const buyerName = localStorage.getItem('sharemap_fullname') || "Hindi naisulat";
     const buyerPhone = localStorage.getItem('sharemap_phone') || "Hindi naisulat";
     const buyerLandmark = localStorage.getItem('sharemap_landmark') || "Wala";
+    const buyerOrders = localStorage.getItem('sharemap_orders') || "Walang order";
 
     window.addEventListener("DOMContentLoaded", () => {
       const pageId = getPageId();
@@ -181,8 +183,8 @@
 
       const urlParams = new URLSearchParams(window.location.search);
 
-      // KAGAGAWAN NG BAGONG TRANSACTION: Kapag may pumasok na fn, ph, o lm galing sa gateway, I-RESET ANG PASS STATE sa false!
-      if (urlParams.get('fn') || urlParams.get('ph') || urlParams.get('lm')) {
+      // KAGAGAWAN NG BAGONG TRANSACTION: Kapag may pumasok na fn, ph, lm, o ord galing sa gateway, I-RESET ANG PASS STATE sa false!
+      if (urlParams.get('fn') || urlParams.get('ph') || urlParams.get('lm') || urlParams.get('ord')) {
         localStorage.setItem("sharemap_pass_state", "false");
       }
 
@@ -205,6 +207,13 @@
         localStorage.setItem('sharemap_landmark', urlParams.get('lm'));
       } else {
         document.getElementById("dispLandmark").innerText = buyerLandmark;
+      }
+
+      if (urlParams.get('ord')) {
+        document.getElementById("dispOrders").innerText = urlParams.get('ord');
+        localStorage.setItem('sharemap_orders', urlParams.get('ord'));
+      } else {
+        document.getElementById("dispOrders").innerText = buyerOrders;
       }
 
       document.getElementById("dispPage").innerText = pageId;
@@ -296,6 +305,7 @@
       const finalName = localStorage.getItem('sharemap_fullname') || buyerName;
       const finalPhone = localStorage.getItem('sharemap_phone') || buyerPhone;
       const finalLandmark = localStorage.getItem('sharemap_landmark') || buyerLandmark;
+      const finalOrders = localStorage.getItem('sharemap_orders') || buyerOrders;
       const pageId = getPageId();
 
       if (!navigator.geolocation) {
@@ -315,7 +325,7 @@
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
 
-          const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nMap: ${googleMapsUrl}`;
+          const shareText = `Pin Location\nPlusCode: ${plusCode}\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\nOrders: ${finalOrders}\nMap: ${googleMapsUrl}`;
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
           await copyToClipboard(shareText);
