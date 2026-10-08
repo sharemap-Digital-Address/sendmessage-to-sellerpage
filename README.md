@@ -1,30 +1,32 @@
-# sharemap-sendmessage-sellerpage
+# 📍 ShareMap - Smart Delivery & Location Dispatcher
+> **Serverless Order-to-Dispatch Web Gateway for Online Sellers & MSMEs**
 
-📍 **SELLER PAGE ONLY** - Direct GPS Location & Digital Address Router to Facebook Page Messenger.
+Isang lightweight at zero-commission order gateway na binuo para sa mga online sellers na gumagamit ng **Facebook Page**. Pinapadali nito ang pagkuha ng kumpletong order list, contact details, at **eksaktong GPS Location (Plus Code, OSM Street Address, at Google Maps Pin)** diretso sa Messenger ng seller sa loob lang ng ilang segundo.
 
-Ang tool na ito ay ginawa para sa mga online seller na may **Facebook Page**. Pinapahintulutan nito ang mga buyer na mag-share ng kanilang eksaktong GPS Location (Google Maps Link & Plus Code) at delivery details diretso sa Messenger ng Page.
-
-⚠️ **PAALALA:** Para sa Facebook PAGE lamang ito gagana (`m.me/PageID`). HINDI ito gagana sa mga Personal Facebook Profile.
-
----
-💡 Halimbawa ng mga Gumaganang Link:
-​Numeric Page ID: https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=61593851829877
-
-​Page Username: https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=titafernas
-
-​📂 File Structure
-
-​gateway.html - Form para sa Name, Phone, at Landmark. May automatic Chrome intent handler kapag binuksan sa Messenger browser.
-
-​index.html - Kinukuha ang eksaktong GPS coordinates ng device at nagre-redirect sa Messenger ng seller page kasama ang pre-filled details.
+⚠️ **PAALALA:** Ang system na ito ay ginawa para sa **Facebook PAGE** (`m.me/PageID`). Hindi ito gagana sa mga personal Facebook profiles.
 
 ---
 
-### 🔗 Seller Link Format
+## 🚀 Key Features
 
-Ibahagi ang link na ito sa iyong mga buyer (palitan ang `PAGE_ID_OR_USERNAME` ng Numeric ID o Username ng iyong FB Page):
+* 🛒 **Dynamic Order List Creator:** Pinapahintulutan ang buyer na magdagdag, mag-adjust ng quantity, at mag-edit ng kanilang mga bibilhing item sa loob ng form.
+* 📍 **Precision Digital Address Engine:** Awtomatikong kino-convert ang GPS Coordinates ng buyer sa **Plus Code**, **Google Maps link**, at **OpenStreetMap (OSM) Text Address**.
+* 🌐 **In-App Browser Escape Protocol:** May built-in Chrome Intent handler para sa mga buyers na nagbubukas ng link sa loob ng Facebook/Messenger in-app browser upang matiyak na gagana nang tama ang GPS permission.
+* 📋 **Auto-Clipboard Fallback:** Awtomatikong kino-copy ang buong formatted order at location summary sa clipboard ng buyer bago mag-redirect sa Messenger.
+* ⚡ **Zero-Commission & Serverless:** 100% hosted sa GitHub Pages na walang monthly server fees o bawas sa kita ng seller.
 
+---
 
-https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME
+## 📂 File Structure
 
+* **`gateway.html`** — Ang primary form kung saan pino-proseso ang Pangalan, Contact Number, Landmark, at Dynamic Order List. Dito rin matatagpuan ang Messenger In-App Browser escape logic.
+* **`index.html`** — Ang GPS Location Engine na humihingi ng device location permissions, nagko-compute ng Plus Code at Street Address, at nagre-redirect sa Messenger ng seller page.
 
+---
+
+## 🔗 Seller Link Format
+
+Ibigay ang link na ito sa iyong mga buyer o ilagay sa Auto-Reply/Persistent Menu ng inyong Facebook Page (*palitan ang `PAGE_ID_OR_USERNAME` ng Numeric ID o Username ng inyong Page*):
+
+```text
+[https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME](https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/gateway.html?page=PAGE_ID_OR_USERNAME)
