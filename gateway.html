@@ -1,30 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareMap - Delivery Form</title>
+    <title>ShareMap - Delivery & Order Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,6 +52,91 @@
         .form-group input:focus {
             border-color: #38bdf8;
         }
+
+        /* --- DYNAMIC ORDER BOX STYLES --- */
+        .order-section {
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .order-section h4 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #38bdf8;
+        }
+        .btn-add-order {
+            background-color: #059669;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn-add-order:hover {
+            background-color: #047857;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            background: #1e293b;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+        }
+        .item-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 13px;
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            background: #334155;
+            border: 1px solid #475569;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .qty-text {
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .act-btn {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-done { background: #16a34a; color: white; }
+        .btn-edit { background: #eab308; color: #000; }
+        .btn-del { background: #ef4444; color: white; }
+        .saved-text {
+            flex: 1;
+            font-size: 13px;
+            color: #f8fafc;
+            word-break: break-word;
+        }
+        /* ---------------------------------- */
+
         .btn {
             background-color: #0284c7;
             color: #ffffff;
@@ -113,7 +177,7 @@
 
     <div class="card">
         <h3 style="margin: 0 0 4px 0;">📍 Delivery Details</h3>
-        <p id="subText" style="font-size: 12px; color: #94a3b8; margin: 0 0 12px 0;">Paki-sagutan ang mga detalye sa ibaba para sa iyong order:</p>
+        <p id="subText" style="font-size: 12px; color: #94a3b8; margin: 0 0 12px 0;">Paki-sagutan ang mga detalye at order sa ibaba:</p>
 
         <div class="form-group">
             <label for="fullName">👤 Buong Pangalan (Full Name):</label>
@@ -127,7 +191,14 @@
 
         <div class="form-group">
             <label for="landmark">🏠 Landmark / Kulay ng Gate (Opsyonal):</label>
-            <input type="text" id="landmark" placeholder="hal. Tabi ng Sari-sari Store, Brngy Pintong Gatang">
+            <input type="text" id="landmark" placeholder="hal. Tabi ng Sari-sari Store">
+        </div>
+
+        <!-- DYNAMIC ORDER CREATOR SECTION -->
+        <div class="order-section">
+            <h4>🛒 Order List (Mga Bibilhin):</h4>
+            <button type="button" class="btn-add-order" onclick="addNewOrderItem()">➕ Magdagdag ng Order</button>
+            <div id="orderListContainer"></div>
         </div>
 
         <p id="errorMsg" class="error-msg">⚠️ Paki-fillup ang Pangalan at Contact Number bago magpatuloy.</p>
@@ -141,6 +212,85 @@
     </div>
 
     <script>
+        let orderCounter = 0;
+
+        function addNewOrderItem() {
+            orderCounter++;
+            const container = document.getElementById("orderListContainer");
+            const rowId = `item-row-${orderCounter}`;
+            const row = document.createElement("div");
+            row.className = "item-row";
+            row.id = rowId;
+
+            row.innerHTML = `
+                <input type="text" class="item-input" id="input-${rowId}" placeholder="hal. Burger Large">
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', -1)">-</button>
+                <span class="qty-text" id="qty-${rowId}">1</span>
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', 1)">+</button>
+                <button type="button" class="act-btn btn-done" onclick="saveOrderItem('${rowId}')">Done</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function changeQty(rowId, delta) {
+            const qtySpan = document.getElementById(`qty-${rowId}`);
+            let currentQty = parseInt(qtySpan.innerText) || 1;
+            currentQty += delta;
+            if (currentQty < 1) currentQty = 1;
+            qtySpan.innerText = currentQty;
+        }
+
+        function saveOrderItem(rowId) {
+            const row = document.getElementById(rowId);
+            const inputField = document.getElementById(`input-${rowId}`);
+            const qtySpan = document.getElementById(`qty-${rowId}`);
+            const itemName = inputField.value.trim();
+            const qty = qtySpan.innerText;
+
+            if (!itemName) {
+                alert("Paki-type ang pangalan ng order!");
+                return;
+            }
+
+            row.innerHTML = `
+                <span class="saved-text"><b>${itemName}</b> x${qty}</span>
+                <button type="button" class="act-btn btn-edit" onclick="editOrderItem('${rowId}', '${escapeQuotes(itemName)}', ${qty})">✏️ Edit</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️ Delete</button>
+            `;
+        }
+
+        function editOrderItem(rowId, currentName, currentQty) {
+            const row = document.getElementById(rowId);
+            row.innerHTML = `
+                <input type="text" class="item-input" id="input-${rowId}" value="${currentName}">
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', -1)">-</button>
+                <span class="qty-text" id="qty-${rowId}">${currentQty}</span>
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', 1)">+</button>
+                <button type="button" class="act-btn btn-done" onclick="saveOrderItem('${rowId}')">Done</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️</button>
+            `;
+        }
+
+        function deleteOrderItem(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+        }
+
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function getFormattedOrdersText() {
+            const savedItems = document.querySelectorAll(".saved-text");
+            if (savedItems.length === 0) return "Walang order";
+            let summary = [];
+            savedItems.forEach(item => {
+                summary.push(item.innerText.replace(/\s+/g, ' '));
+            });
+            return summary.join(", ");
+        }
+
         function isMessengerBrowser() {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
@@ -155,17 +305,15 @@
             return urlParams.get('page') || localStorage.getItem('sharemap_page') || "TechSavyBoy.SketchDevPro";
         }
 
-        // Restoration kapag galing sa Chrome intent
         window.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const nameFromUrl = urlParams.get('fn');
             const phoneFromUrl = urlParams.get('ph');
             const landmarkFromUrl = urlParams.get('lm');
+            const ordersFromUrl = urlParams.get('ord');
             const pageFromUrl = urlParams.get('page');
 
-            if (pageFromUrl) {
-                localStorage.setItem('sharemap_page', pageFromUrl);
-            }
+            if (pageFromUrl) localStorage.setItem('sharemap_page', pageFromUrl);
 
             if (nameFromUrl && phoneFromUrl) {
                 document.getElementById('fullName').value = nameFromUrl;
@@ -175,6 +323,7 @@
                 localStorage.setItem('sharemap_fullname', nameFromUrl);
                 localStorage.setItem('sharemap_phone', phoneFromUrl);
                 localStorage.setItem('sharemap_landmark', landmarkFromUrl || "Wala");
+                if (ordersFromUrl) localStorage.setItem('sharemap_orders', ordersFromUrl);
                 sessionStorage.setItem('access_granted', 'true');
             }
         });
@@ -183,6 +332,7 @@
             const nameVal = document.getElementById('fullName').value.trim();
             const phoneVal = document.getElementById('phone').value.trim();
             const landmarkVal = document.getElementById('landmark').value.trim();
+            const ordersVal = getFormattedOrdersText();
 
             if (!nameVal || !phoneVal) {
                 errorMsgEl.style.display = "block";
@@ -192,7 +342,8 @@
             return {
                 name: nameVal,
                 phone: phoneVal,
-                landmark: landmarkVal || "Wala"
+                landmark: landmarkVal || "Wala",
+                orders: ordersVal
             };
         }
 
@@ -202,9 +353,10 @@
             localStorage.setItem('sharemap_fullname', data.name);
             localStorage.setItem('sharemap_phone', data.phone);
             localStorage.setItem('sharemap_landmark', data.landmark);
+            localStorage.setItem('sharemap_orders', data.orders);
             sessionStorage.setItem('access_granted', 'true');
 
-            const queryStr = `?pass=true&page=${encodeURIComponent(pageId)}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}`;
+            const queryStr = `?pass=true&page=${encodeURIComponent(pageId)}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&ord=${encodeURIComponent(data.orders)}`;
             return `./index.html${queryStr}`;
         }
 
@@ -215,10 +367,9 @@
             btn.onclick = () => {
                 const data = getFormValues();
                 if (data) {
-                    const targetUrl = window.location.origin + window.location.pathname + `?page=${encodeURIComponent(getPageId())}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}`;
+                    const targetUrl = window.location.origin + window.location.pathname + `?page=${encodeURIComponent(getPageId())}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&ord=${encodeURIComponent(data.orders)}`;
                     const cleanUrl = targetUrl.replace(/^https?:\/\//, '');
                     window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
-                    // save pa rin
                     buildIndexUrl(data);
                 }
             };
@@ -231,5 +382,5 @@
             };
         }
     </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</body>
 </html>
