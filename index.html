@@ -183,7 +183,6 @@
 
       const urlParams = new URLSearchParams(window.location.search);
 
-      // KAGAGAWAN NG BAGONG TRANSACTION: Kapag may pumasok na fn, ph, lm, o ord galing sa gateway, I-RESET ANG PASS STATE sa false!
       if (urlParams.get('fn') || urlParams.get('ph') || urlParams.get('lm') || urlParams.get('ord')) {
         localStorage.setItem("sharemap_pass_state", "false");
       }
@@ -276,8 +275,31 @@
           headers: { 'User-Agent': 'ShareMapDeliveryApp/1.0' }
         });
         const data = await response.json();
-        if (data && data.display_name) {
-          return data.display_name;
+        
+        if (data && data.address) {
+          const a = data.address;
+          
+          // 1. Kalsada / Kalye
+          const road = a.road || a.pedestrian || a.path || "";
+          
+          // 2. Barangay / Subdivision / District / Village
+          const neighbourhood = a.neighbourhood || a.suburb || a.village || a.quarter || a.hamlet || "";
+          
+          // 3. Lungsod / Bayan (City or Town)
+          const city = a.city || a.town || a.municipality || "";
+          
+          // 4. Probinsya (Iniiwasan ang legislative district tags)
+          const province = a.province || a.state || a.region || "";
+          
+          // 5. Bansa
+          const country = a.country || "";
+
+          // Pagsama-samahin ang may laman at alisin ang paulit-ulit o blankong bahagi
+          const addressParts = [road, neighbourhood, city, province, country]
+            .map(part => part.trim())
+            .filter((part, index, self) => part.length > 0 && self.indexOf(part) === index);
+          
+          return addressParts.join(", ");
         }
       } catch (err) {
         console.log("Reverse geocoding error:", err);
@@ -323,6 +345,13 @@
       const finalOrders = localStorage.getItem('sharemap_orders') || buyerOrders;
       const pageId = getPageId();
 
+      // FORMAT ORDER LIST PABABA PER ITEM
+      const formattedOrders = finalOrders
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .join('\n');
+
       if (!navigator.geolocation) {
         statusEl.classList.add("error");
         statusEl.innerText = "Hindi suportado ng browser mo ang Geolocation.";
@@ -340,11 +369,10 @@
           const plusCode = encodeStandardPlusCode(lat, lng);
           const googleMapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
           
-          // Kuha ng kumpletong Text Address
           const textAddress = await getStreetAddress(lat, lng);
 
-          // BAGONG NAKA-ORGANISE NA FORMAT
-          const shareText = `Client Order List:\n ${finalOrders}\n\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\n\n📍 Pin Location\nPlusCode: ${plusCode}\n\nMap link address: ${googleMapsUrl}\n\nGeo address: ${lat},${lng}\nText Address: ${textAddress}`;
+          // MESSENGER TEXT OUTPUT
+          const shareText = `Client Order List:\n${formattedOrders}\n\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\n\n📍 Pin Location\nPlusCode: ${plusCode}\n\nMap link address: ${googleMapsUrl}\n\nGeo address: ${lat},${lng}\nText Address: ${textAddress}`;
 
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
