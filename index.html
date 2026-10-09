@@ -153,19 +153,16 @@
     <div id="buyerDetailsDisplay" class="buyer-info-box">
       <h4>📋 Impormasyon sa Delivery:</h4>
 
-      <!-- NEAREST BRANCH DISPLAY / INPUT FIELD -->
-      <div class="buyer-info-item" id="branchDisplayRow">
-        🏢 <b>Nearest Branch:</b> <span id="dispBranch">Pumili sa ibaba</span>
-      </div>
-
+      <div class="buyer-info-item">🏪 <b>Store Name / Page:</b> <span id="dispPage">-</span></div>
+      <div class="buyer-info-item" id="branchDisplayRow">🏢 <b>Nearest Branch:</b> <span id="dispBranch">Pumili sa ibaba</span></div>
+      <div class="buyer-info-item">⏰ <b>Schedule Order:</b> <span id="dispSched">Now (Agad-agad)</span></div>
       <div class="buyer-info-item">🛒 <b>Orders:</b> <span id="dispOrders">-</span></div>
       <div class="buyer-info-item">👤 <b>Pangalan:</b> <span id="dispName">-</span></div>
       <div class="buyer-info-item">📞 <b>Contact:</b> <span id="dispPhone">-</span></div>
       <div class="buyer-info-item">🏠 <b>Landmark:</b> <span id="dispLandmark">-</span></div>
-      <div class="buyer-info-item">📩 <b>Isesend kay:</b> <span id="dispPage">-</span></div>
     </div>
 
-    <!-- OPTIONAL NEAREST BRANCH SELECTOR (KUNG HINDI PA NAI-SET SA URL) -->
+    <!-- OPTIONAL NEAREST BRANCH SELECTOR -->
     <div class="branch-select-box">
       <label style="font-size: 12px; font-weight: bold; color: #475569;">🏢 Nearest Branch (Opsyonal):</label>
       <input type="text" id="branchInput" placeholder="hal. SM Lucena / Main Branch" oninput="updateBranchDisplay()">
@@ -174,7 +171,7 @@
     <p style="font-size: 13px; color: #555;">Pindutin ang button sa ibaba para ma-share agad ang inyong Digital Address (Plus Code) kasama ang inyong details at orders diretso sa Messenger ng Seller.</p>
 
     <button id="mainShareBtn" class="share-btn" onclick="handleMainButtonClick()">
-      📤 Pindutin para I-share sa Messenger ng Store
+      📤 Pindutin para I-share sa Messenger
     </button>
     
     <p id="status" class="status-msg"></p>
@@ -228,6 +225,7 @@
     const buyerLandmark = localStorage.getItem('sharemap_landmark') || "Wala";
     const buyerOrders = localStorage.getItem('sharemap_orders') || "Walang order";
     const buyerBranch = localStorage.getItem('sharemap_branch') || "Main Branch";
+    const buyerSchedule = localStorage.getItem('sharemap_schedule') || "Now (Agad-agad)";
 
     window.addEventListener("DOMContentLoaded", () => {
       const pageId = getPageId();
@@ -243,6 +241,13 @@
       } else {
         document.getElementById("dispBranch").innerText = buyerBranch;
         document.getElementById("branchInput").value = buyerBranch !== "Main Branch" ? buyerBranch : "";
+      }
+
+      if (urlParams.get('sched')) {
+        document.getElementById("dispSched").innerText = urlParams.get('sched');
+        localStorage.setItem('sharemap_schedule', urlParams.get('sched'));
+      } else {
+        document.getElementById("dispSched").innerText = buyerSchedule;
       }
 
       if (urlParams.get('fn')) {
@@ -391,6 +396,7 @@
       const finalLandmark = localStorage.getItem('sharemap_landmark') || buyerLandmark;
       const finalOrders = localStorage.getItem('sharemap_orders') || buyerOrders;
       const finalBranch = localStorage.getItem('sharemap_branch') || buyerBranch;
+      const finalSched = localStorage.getItem('sharemap_schedule') || buyerSchedule;
       const pageId = getPageId();
 
       const formattedOrders = finalOrders
@@ -416,8 +422,8 @@
           
           const textAddress = await getStreetAddress(lat, lng);
 
-          // MESSENGER PAYLOAD (INUNA ANG NEAREST BRANCH SA PINAKATUKTOK)
-          const shareText = `Nearest Branch: ${finalBranch}\n\nClient Order List:\n${formattedOrders}\n\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\n\n📍 Pin Location\nDigital Address (PlusCode): ${plusCode}\n\nMap link address: ${googleMapsUrl}\n\nGeo address: ${lat},${lng}\nText Address (OSM): ${textAddress}`;
+          // MESSENGER PAYLOAD LOADOUT WITH STORE NAME & SCHEDULE ORDER
+          const shareText = `🏪 Store / Page: ${pageId}\n🏢 Nearest Branch: ${finalBranch}\n⏰ Schedule Order: ${finalSched}\n\nClient Order List:\n${formattedOrders}\n\nName: ${finalName}\nPhone: ${finalPhone}\nLandmark: ${finalLandmark}\n\n📍 Pin Location\nDigital Address (PlusCode): ${plusCode}\n\nMap link address: ${googleMapsUrl}\n\nGeo address: ${lat},${lng}\nText Address (OSM): ${textAddress}`;
 
           const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
 
@@ -471,6 +477,8 @@
       const finalLandmark = localStorage.getItem('sharemap_landmark') || buyerLandmark;
       const finalOrders = localStorage.getItem('sharemap_orders') || buyerOrders;
       const finalBranch = localStorage.getItem('sharemap_branch') || buyerBranch;
+      const finalSched = localStorage.getItem('sharemap_schedule') || buyerSchedule;
+      const pageId = getPageId();
 
       const formattedOrders = finalOrders
         .split(',')
@@ -494,9 +502,11 @@
 
           statusEl.innerText = "📱 Binubuksan ang SMS Messaging App...";
 
-          // CLEAN SMS FORMAT
+          // CLEAN SMS FORMAT WITH STORE NAME & SCHEDULE ORDER
           const smsBodyText = `SHAREMAP DELIVERY ORDER\n` +
-                              `🏢 Nearest Branch: ${finalBranch}\n\n` +
+                              `🏪 Store: ${pageId}\n` +
+                              `🏢 Branch: ${finalBranch}\n` +
+                              `⏰ Schedule: ${finalSched}\n\n` +
                               `🛒 Orders:\n• ${formattedOrders}\n\n` +
                               `👤 Name: ${finalName}\n` +
                               `📞 Contact: ${finalPhone}\n` +
