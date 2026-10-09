@@ -1,7 +1,7 @@
 // licenses.js
 const SHAREMAP_LICENSES = {
   // LIFETIME ACTIVE CLIENTS (NAGBAYAD NA NG ONE-TIME FEE) -> WALANG EXPIRATION / NULL
-  
+  "marjevinsoylucena": { status: "ACTIVE", expires: null },
   "techsavyboy":       { status: "ACTIVE", expires: null },
 
   // TRIAL CLIENTS (MAY EXPIRATION DATE PA RIN PARA SA 7-DAY FREE TRIAL)
