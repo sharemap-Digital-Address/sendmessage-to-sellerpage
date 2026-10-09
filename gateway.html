@@ -135,7 +135,6 @@
             color: #f8fafc;
             word-break: break-word;
         }
-        /* ---------------------------------- */
 
         .btn {
             background-color: #0284c7;
@@ -192,6 +191,13 @@
         <div class="form-group">
             <label for="landmark">🏠 Landmark / Kulay ng Gate (Opsyonal):</label>
             <input type="text" id="landmark" placeholder="hal. Tabi ng Sari-sari Store">
+        </div>
+
+        <!-- NEW FIELD: SCHEDULE ORDER DATE / TIME -->
+        <div class="form-group">
+            <label for="scheduleOrder">⏰ Schedule Order / Oras ng Delivery (Opsyonal):</label>
+            <input type="datetime-local" id="scheduleOrder">
+            <small style="font-size: 11px; color: #38bdf8;">*Iwanang blanko kung para sa AGAD-AGAD na order (Now).</small>
         </div>
 
         <!-- DYNAMIC ORDER CREATOR SECTION -->
@@ -305,12 +311,20 @@
             return urlParams.get('page') || localStorage.getItem('sharemap_page') || "TechSavyBoy.SketchDevPro";
         }
 
+        function formatScheduleText(rawInput) {
+            if (!rawInput) return "Now (Agad-agad)";
+            const dt = new Date(rawInput);
+            if (isNaN(dt.getTime())) return rawInput;
+            return dt.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
         window.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const nameFromUrl = urlParams.get('fn');
             const phoneFromUrl = urlParams.get('ph');
             const landmarkFromUrl = urlParams.get('lm');
             const ordersFromUrl = urlParams.get('ord');
+            const schedFromUrl = urlParams.get('sched');
             const pageFromUrl = urlParams.get('page');
 
             if (pageFromUrl) localStorage.setItem('sharemap_page', pageFromUrl);
@@ -319,11 +333,13 @@
                 document.getElementById('fullName').value = nameFromUrl;
                 document.getElementById('phone').value = phoneFromUrl;
                 if (landmarkFromUrl) document.getElementById('landmark').value = landmarkFromUrl;
+                if (schedFromUrl) document.getElementById('scheduleOrder').value = schedFromUrl;
 
                 localStorage.setItem('sharemap_fullname', nameFromUrl);
                 localStorage.setItem('sharemap_phone', phoneFromUrl);
                 localStorage.setItem('sharemap_landmark', landmarkFromUrl || "Wala");
                 if (ordersFromUrl) localStorage.setItem('sharemap_orders', ordersFromUrl);
+                if (schedFromUrl) localStorage.setItem('sharemap_schedule', formatScheduleText(schedFromUrl));
                 sessionStorage.setItem('access_granted', 'true');
             }
         });
@@ -332,6 +348,7 @@
             const nameVal = document.getElementById('fullName').value.trim();
             const phoneVal = document.getElementById('phone').value.trim();
             const landmarkVal = document.getElementById('landmark').value.trim();
+            const schedVal = document.getElementById('scheduleOrder').value;
             const ordersVal = getFormattedOrdersText();
 
             if (!nameVal || !phoneVal) {
@@ -343,6 +360,8 @@
                 name: nameVal,
                 phone: phoneVal,
                 landmark: landmarkVal || "Wala",
+                schedule: formatScheduleText(schedVal),
+                rawSched: schedVal,
                 orders: ordersVal
             };
         }
@@ -353,10 +372,11 @@
             localStorage.setItem('sharemap_fullname', data.name);
             localStorage.setItem('sharemap_phone', data.phone);
             localStorage.setItem('sharemap_landmark', data.landmark);
+            localStorage.setItem('sharemap_schedule', data.schedule);
             localStorage.setItem('sharemap_orders', data.orders);
             sessionStorage.setItem('access_granted', 'true');
 
-            const queryStr = `?pass=true&page=${encodeURIComponent(pageId)}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&ord=${encodeURIComponent(data.orders)}`;
+            const queryStr = `?pass=true&page=${encodeURIComponent(pageId)}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&sched=${encodeURIComponent(data.schedule)}&ord=${encodeURIComponent(data.orders)}`;
             return `./index.html${queryStr}`;
         }
 
@@ -367,7 +387,7 @@
             btn.onclick = () => {
                 const data = getFormValues();
                 if (data) {
-                    const targetUrl = window.location.origin + window.location.pathname + `?page=${encodeURIComponent(getPageId())}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&ord=${encodeURIComponent(data.orders)}`;
+                    const targetUrl = window.location.origin + window.location.pathname + `?page=${encodeURIComponent(getPageId())}&fn=${encodeURIComponent(data.name)}&ph=${encodeURIComponent(data.phone)}&lm=${encodeURIComponent(data.landmark)}&sched=${encodeURIComponent(data.rawSched)}&ord=${encodeURIComponent(data.orders)}`;
                     const cleanUrl = targetUrl.replace(/^https?:\/\//, '');
                     window.location.href = `intent://${cleanUrl}#Intent;scheme=https;package=com.android.chrome;end;`;
                     buildIndexUrl(data);
