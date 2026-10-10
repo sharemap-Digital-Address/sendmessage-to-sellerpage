@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareMap - Order & Service Gateway</title>
+
+    <!-- LICENSE CHECKER SCRIPT -->
+    <script src="./licenses.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof checkShareMapAccess === 'function') {
+                checkShareMapAccess();
+            }
+        });
+    </script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px 12px 30px 12px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: #1e293b;
+            padding: 18px 16px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+
+        /* --- SERVICE TYPE SELECTOR (RADIO TOGGLE) --- */
+        .service-toggle {
+            display: flex;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+        .service-option {
+            flex: 1;
+            text-align: center;
+        }
+        .service-option input[type="radio"] {
+            display: none;
+        }
+        .service-option label {
+            display: block;
+            padding: 10px 6px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #94a3b8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .service-option input[type="radio"]:checked + label {
+            background-color: #0284c7;
+            color: #ffffff;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 3px;
+            color: #cbd5e1;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background-color: #0f172a;
+            color: #ffffff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: #38bdf8;
+        }
+
+        /* --- DYNAMIC ORDER BOX STYLES --- */
+        .order-section {
+            text-align: left;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .order-section h4 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #38bdf8;
+        }
+        .btn-add-order {
+            background-color: #059669;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+            background: #1e293b;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+        }
+        .item-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 13px;
+        }
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            background: #334155;
+            border: 1px solid #475569;
+            color: white;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .qty-text {
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .act-btn {
+            padding: 6px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-done { background: #16a34a; color: white; }
+        .btn-edit { background: #eab308; color: #000; }
+        .btn-del { background: #ef4444; color: white; }
+        .saved-text {
+            flex: 1;
+            font-size: 13px;
+            color: #f8fafc;
+            word-break: break-word;
+        }
+
+        .btn {
+            background-color: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            background-color: #0369a1;
+        }
+        .messenger-alert {
+            display: none;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .error-msg {
+            color: #f87171;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h3 style="margin: 0 0 4px 0;">📍 ShareMap Order Gateway</h3>
+        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 12px 0;">Pumili ng serbisyo at sagutan ang mga detalye:</p>
+
+        <!-- SERVICE TYPE SWITCHER -->
+        <div class="service-toggle">
+            <div class="service-option">
+                <input type="radio" id="typeDelivery" name="serviceType" value="delivery" checked onchange="toggleServiceType()">
+                <label for="typeDelivery">🛵 Book Delivery</label>
+            </div>
+            <div class="service-option">
+                <input type="radio" id="typeDineIn" name="serviceType" value="dinein" onchange="toggleServiceType()">
+                <label for="typeDineIn">🍽️ Book Dine-In</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="fullName">👤 Buong Pangalan (Full Name):</label>
+            <input type="text" id="fullName" placeholder="hal. Juan Dela Cruz">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">📞 Contact Number:</label>
+            <input type="tel" id="phone" placeholder="hal. 09123456789">
+        </div>
+
+        <!-- LANDMARK FIELD (NAKA-SHOW PAG DELIVERY, NAKA-HIDE PAG DINE-IN) -->
+        <div class="form-group" id="landmarkGroup">
+            <label for="landmark">🏠 Landmark / Kulay ng Gate (Opsyonal):</label>
+            <input type="text" id="landmark" placeholder="hal. Tabi ng Sari-sari Store">
+        </div>
+
+        <!-- PAX FIELD (LALABAS LANG KAPAG DINE-IN) -->
+        <div class="form-group" id="paxGroup" style="display: none;">
+            <label for="paxCount">👥 Bilang ng Tao (Pax / Table Size):</label>
+            <input type="number" id="paxCount" placeholder="hal. 4" min="1" value="2">
+        </div>
+
+        <!-- SCHEDULE ORDER DATE / TIME -->
+        <div class="form-group">
+            <label for="scheduleOrder" id="scheduleLabel">⏰ Schedule Order / Oras ng Delivery (Opsyonal):</label>
+            <input type="datetime-local" id="scheduleOrder">
+            <small id="scheduleNote" style="font-size: 11px; color: #38bdf8;">*Iwanang blanko kung para sa AGAD-AGAD na order (Now).</small>
+        </div>
+
+        <!-- DYNAMIC ORDER CREATOR SECTION -->
+        <div class="order-section">
+            <h4>🛒 Order List (Mga Bibilhin):</h4>
+            <button type="button" class="btn-add-order" onclick="addNewOrderItem()">➕ Magdagdag ng Order</button>
+            <div id="orderListContainer"></div>
+        </div>
+
+        <p id="errorMsg" class="error-msg">⚠️ Paki-fillup ang Pangalan at Contact Number bago magpatuloy.</p>
+
+        <button id="proceedBtn" class="btn">📍 Sunod: Kunin ang GPS Location ➔</button>
+
+        <div id="messengerNotice" class="messenger-alert">
+            ⚠️ <b>Gamit mo ang Messenger Browser:</b><br>
+            Paki-sagutan ang form at pindutin ang button sa itaas. I-tap ang <b>"CONTINUE"</b> para magbukas sa Chrome browser.
+        </div>
+    </div>
+
+    <script>
+        let orderCounter = 0;
+
+        function toggleServiceType() {
+            const isDineIn = document.getElementById("typeDineIn").checked;
+            const landmarkGroup = document.getElementById("landmarkGroup");
+            const paxGroup = document.getElementById("paxGroup");
+            const scheduleLabel = document.getElementById("scheduleLabel");
+            const scheduleNote = document.getElementById("scheduleNote");
+            const proceedBtn = document.getElementById("proceedBtn");
+
+            if (isDineIn) {
+                landmarkGroup.style.display = "none";
+                paxGroup.style.display = "block";
+                scheduleLabel.innerText = "⏰ Petsa at Oras ng Pagkain (Dine-In Schedule):";
+                scheduleNote.innerText = "*Iwanang blanko kung pupunta na AGAD-AGAD sa store.";
+                proceedBtn.innerText = "📩 I-send ang Reservation sa Messenger ➔";
+            } else {
+                landmarkGroup.style.display = "block";
+                paxGroup.style.display = "none";
+                scheduleLabel.innerText = "⏰ Schedule Order / Oras ng Delivery (Opsyonal):";
+                scheduleNote.innerText = "*Iwanang blanko kung para sa AGAD-AGAD na order (Now).";
+                proceedBtn.innerText = "📍 Sunod: Kunin ang GPS Location ➔";
+            }
+        }
+
+        function addNewOrderItem() {
+            orderCounter++;
+            const container = document.getElementById("orderListContainer");
+            const rowId = `item-row-${orderCounter}`;
+            const row = document.createElement("div");
+            row.className = "item-row";
+            row.id = rowId;
+
+            row.innerHTML = `
+                <input type="text" class="item-input" id="input-${rowId}" placeholder="hal. Burger Large">
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', -1)">-</button>
+                <span class="qty-text" id="qty-${rowId}">1</span>
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', 1)">+</button>
+                <button type="button" class="act-btn btn-done" onclick="saveOrderItem('${rowId}')">Done</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function changeQty(rowId, delta) {
+            const qtySpan = document.getElementById(`qty-${rowId}`);
+            let currentQty = parseInt(qtySpan.innerText) || 1;
+            currentQty += delta;
+            if (currentQty < 1) currentQty = 1;
+            qtySpan.innerText = currentQty;
+        }
+
+        function saveOrderItem(rowId) {
+            const row = document.getElementById(rowId);
+            const inputField = document.getElementById(`input-${rowId}`);
+            const qtySpan = document.getElementById(`qty-${rowId}`);
+            const itemName = inputField.value.trim();
+            const qty = qtySpan.innerText;
+
+            if (!itemName) {
+                alert("Paki-type ang pangalan ng order!");
+                return;
+            }
+
+            row.innerHTML = `
+                <span class="saved-text"><b>${itemName}</b> x${qty}</span>
+                <button type="button" class="act-btn btn-edit" onclick="editOrderItem('${rowId}', '${escapeQuotes(itemName)}', ${qty})">✏️ Edit</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️ Delete</button>
+            `;
+        }
+
+        function editOrderItem(rowId, currentName, currentQty) {
+            const row = document.getElementById(rowId);
+            row.innerHTML = `
+                <input type="text" class="item-input" id="input-${rowId}" value="${currentName}">
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', -1)">-</button>
+                <span class="qty-text" id="qty-${rowId}">${currentQty}</span>
+                <button type="button" class="qty-btn" onclick="changeQty('${rowId}', 1)">+</button>
+                <button type="button" class="act-btn btn-done" onclick="saveOrderItem('${rowId}')">Done</button>
+                <button type="button" class="act-btn btn-del" onclick="deleteOrderItem('${rowId}')">🗑️</button>
+            `;
+        }
+
+        function deleteOrderItem(rowId) {
+            const row = document.getElementById(rowId);
+            if (row) row.remove();
+        }
+
+        function escapeQuotes(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function getFormattedOrdersText() {
+            const savedItems = document.querySelectorAll(".saved-text");
+            if (savedItems.length === 0) return "Walang order";
+            let summary = [];
+            savedItems.forEach(item => {
+                summary.push(item.innerText.replace(/\s+/g, ' '));
+            });
+            return summary.join(", ");
+        }
+
+        function isMessengerBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
+        }
+
+        const btn = document.getElementById('proceedBtn');
+        const noticeEl = document.getElementById('messengerNotice');
+        const errorMsgEl = document.getElementById('errorMsg');
+
+        function getPageId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('page') || localStorage.getItem('sharemap_page') || "TechSavyBoy.SketchDevPro";
+        }
+
+        function formatScheduleText(rawInput) {
+            if (!rawInput) return "Now (Agad-agad)";
+            const dt = new Date(rawInput);
+            if (isNaN(dt.getTime())) return rawInput;
+            return dt.toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' });
+        }
+
+        function handleProcessOrder() {
+            const nameVal = document.getElementById('fullName').value.trim();
+            const phoneVal = document.getElementById('phone').value.trim();
+            const landmarkVal = document.getElementById('landmark').value.trim();
+            const paxVal = document.getElementById('paxCount').value.trim();
+            const schedVal = document.getElementById('scheduleOrder').value;
+            const ordersVal = getFormattedOrdersText();
+            const isDineIn = document.getElementById("typeDineIn").checked;
+            const pageId = getPageId();
+
+            if (!nameVal || !phoneVal) {
+                errorMsgEl.style.display = "block";
+                return;
+            }
+            errorMsgEl.style.display = "none";
+
+            const formattedSched = formatScheduleText(schedVal);
+
+            // KAPAG DINE-IN: DIRECT REDIRECT TO MESSENGER (SKIPS INDEX.HTML & GPS)
+            if (isDineIn) {
+                const formattedOrders = ordersVal.split(', ').join('\n• ');
+                const shareText = `🍽️ DINE-IN TABLE RESERVATION\n🏪 Store / Page: ${pageId}\n⏰ Schedule: ${formattedSched}\n👥 Party Size: ${paxVal || '2'} Pax\n\n🛒 Advance Orders:\n• ${formattedOrders}\n\n👤 Name: ${nameVal}\n📞 Contact: ${phoneVal}`;
+                const messengerUrl = `https://m.me/${encodeURIComponent(pageId)}?text=${encodeURIComponent(shareText)}`;
+                
+                window.location.href = messengerUrl;
+                return;
+            }
+
+            // KAPAG DELIVERY: PROCEED TO INDEX.HTML FOR GPS LOCATION PIN
+            localStorage.setItem('sharemap_page', pageId);
+            localStorage.setItem('sharemap_fullname', nameVal);
+            localStorage.setItem('sharemap_phone', phoneVal);
+            localStorage.setItem('sharemap_landmark', landmarkVal || "Wala");
+            localStorage.setItem('sharemap_schedule', formattedSched);
+            localStorage.setItem('sharemap_orders', ordersVal);
+            sessionStorage.setItem('access_granted', 'true');
+
+            const queryStr = `?pass=true&page=${encodeURIComponent(pageId)}&fn=${encodeURIComponent(nameVal)}&ph=${encodeURIComponent(phoneVal)}&lm=${encodeURIComponent(landmarkVal || 'Wala')}&sched=${encodeURIComponent(formattedSched)}&ord=${encodeURIComponent(ordersVal)}`;
+            window.location.href = `./index.html${queryStr}`;
+        }
+
+        btn.onclick = () => {
+            handleProcessOrder();
+        };
+    </script>
+</body>
+</html>
