@@ -56,7 +56,7 @@ function checkShareMapAccess() {
 
 function showBlockScreen(title, message) {
     // Palitan ang link sa ibaba ng iyong opisyal na Facebook Messenger link o Contact Link
-    const CONTACT_LINK = "https://m.me/marjevinsoylucena"; 
+    const CONTACT_LINK = "https://m.me/sharemap.digital.address"; 
 
     document.body.innerHTML = `
         <div style="background:#0f172a; color:#fff; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; font-family:sans-serif;">
