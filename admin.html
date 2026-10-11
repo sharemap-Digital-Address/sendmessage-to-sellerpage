@@ -127,6 +127,83 @@
     </div>
 </div>
 
+ = eval('(' + objectString + ')');
+            } else {
+                licensesData = {};
+            }
+            
+            renderStores(licensesData);
+            alert("Tagumpay na nai-load ang mga lisensya!");
+        } catch (error) {
+            alert("Error sa pag-parse: " + error.message);
+        }
+    }
+
+    function renderStores(data) {
+        const container = document.getElementById('storeListContainer');
+        container.innerHTML = "";
+
+        let keys = Object.keys(data);
+        if(keys.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #94a3b8;">Walang nakitang account.</p>`;
+            return;
+        }
+
+        let today = new Date().toISOString().split('T')[0];
+
+        keys.forEach(username => {
+            let store = data[username];
+            let statusClass = "active";
+            let statusText = "Active";
+
+            if (store.expiry && today > store.expiry) {
+                statusClass = "expired";
+                statusText = "Expired";
+            } else if (store.plan === "TRIAL_ACCESS") {
+                statusClass = "trial";
+                statusText = "Trial";
+            }
+
+            let expiryLabel = store.expiry ? store.expiry : "Lifetime";
+
+            let div = document.createElement('div');
+            div.className = "store-item";
+            div.innerHTML = `
+                <div class="store-info">
+                    <strong>@${username}</strong> <span class="badge ${statusClass}">${statusText}</span>
+                    <div>Plan: ${store.plan} | Expiry: ${expiryLabel}</div>
+                </div>
+                <div class="actions">
+                    <button onclick="editStore('${username}')" style="background:#2563eb;">Edit</button>
+                    <button onclick="deleteStore('${username}')" style="background:#dc2626;">Del</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function filterStores() {
+        let query = document.getElementById('searchInput').value.toLowerCase();
+        let statusFilter = document.getElementById('filterStatus').value;
+        let today = new Date().toISOString().split('T')[0];
+
+        let filtered = {};
+
+        Object.keys(licensesData).forEach(username => {
+            let store = licensesData[username];
+            let matchName = username.toLowerCase().includes(query);
+            let isExpired = store.expiry && today > store.expiry;
+
+            let keep = true;
+
+            if(statusFilter === "active" && (isExpired || store.plan === "TRIAL_ACCESS")) keep = false;
+            if(statusFilter === "trial" && store.plan !== "TRIAL_ACCESS") keep = false;
+            if(statusFilter === "expired" && !isExpired) keep = false;
+
+            if(matchName && keep) {
+                filtered[username] = store;
+            }
+        });
 <script>
     const REPO_OWNER = "sharemap-digital-address";
     const REPO_NAME = "sendmessage-to-sellerpage";
@@ -180,15 +257,24 @@
             // Decode Base64 content
             let decodedContent = decodeURIComponent(escape(atob(data.content)));
             
-            // Parse ang SHAREMAP_LICENSES Object mula sa licenses.js
+            // Hanapin ang mismong Object {...} gamit ang first '{' at last '}'
             let start = decodedContent.indexOf('{');
             let end = decodedContent.lastIndexOf('}');
             
             if (start !== -1 && end !== -1) {
-                let objectString = decodedContent.substring(start, end + 1);
-                // Clean JS comments bago i-parse
-                objectString = objectString.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''); 
-                licensesData = eval('(' + objectString + ')');
+                // Kunin lamang ang loob ng object at tanggalin ang anumang trailing semicolon o extra spaces
+                let jsonCandidate = decodedContent.substring(start, end + 1).trim();
+                
+                // Linisin ang JS comments
+                jsonCandidate = jsonCandidate.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '');
+                
+                // I-convert ang JS Object key/string format para maging valid JSON
+                jsonCandidate = jsonCandidate.replace(/([{,]\s*)([a-zA-Z0-9_$]+)\s*:/g, '$1"$2":');
+                
+                // Tanggalin ang mga trailing comma sa dulo ng objects
+                jsonCandidate = jsonCandidate.replace(/,\s*([}\]])/g, '$1');
+
+                licensesData = JSON.parse(jsonCandidate);
             } else {
                 licensesData = {};
             }
@@ -315,10 +401,54 @@
         const token = document.getElementById('githubToken').value.trim();
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
 
-        // I-format pabalik sa eksaktong istruktura ng licenses.js
         let headerComments = `// ==========================================\n// SHAREMAP CENTRAL LICENSE DATABASE\n// ==========================================\n\n`;
-        let newFileContent = headerComments + "const SHAREMAP_LICENSES = " + JSON.stringify(licensesData, null, 4) + ";\n\n" + checkShareMapAccess.toString() + "\n\n" + showBlockScreen.toString();
         
+        let newFileContent = headerComments + "const SHAREMAP_LICENSES = " + JSON.stringify(licensesData, null, 4) + ";\n\n" + 
+`function checkShareMapAccess() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageId = urlParams.get('page') || localStorage.getItem('sharemap_page');
+
+    if (!pageId) {
+        alert("⚠️ Walang natagpung Store Page ID. Hindi maiproseso ang gateway.");
+        document.body.innerHTML = "<h2 style='color:red; text-align:center; margin-top:50px;'>⚠️ Invalid Gateway Link</h2>";
+        return;
+    }
+
+    const license = SHAREMAP_LICENSES[pageId];
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!license || license.status === "INACTIVE") {
+        showBlockScreen("⚠️ Walang Lisensya / Inactive Account", "Ang store na ito ay wala pang lisensya sa ShareMap. Mangyaring makipag-ugnayan sa provider.");
+        return;
+    }
+
+    if (license.expiry && today > license.expiry) {
+        showBlockScreen("🚫 Expired License", \`Ang inyong \${license.plan === 'BRONZE_MONTHLY' ? 'Bronze Monthly' : 'Trial'} Access ay nag-expire noong \${license.expiry}. Paki-renew ang inyong subscription sa ShareMap.\`);
+        return;
+    }
+
+    console.log(\`✅ Access Granted for \${pageId} [Plan: \${license.plan}]\`);
+}\n\n` +
+`function showBlockScreen(title, message) {
+    const CONTACT_LINK = "https://m.me/sharemap.digital.address"; 
+
+    document.body.innerHTML = \`
+        <div style="background:#0f172a; color:#fff; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; text-align:center; font-family:sans-serif;">
+            <div style="background:#1e293b; padding:30px; border-radius:12px; border:1px solid #ef4444; max-width:400px; width:90%; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+                <h2 style="color:#ef4444; margin-top:0; font-size:20px;">\${title}</h2>
+                <p style="color:#cbd5e1; font-size:14px; line-height:1.5;">\${message}</p>
+                
+                <a href="\${CONTACT_LINK}" target="_blank" style="display:inline-block; margin-top:15px; background:#2563eb; color:#fff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px; width:80%;">
+                    💬 Contact Developer / Renew Access
+                </a>
+
+                <hr style="border:0; border-top:1px solid #334155; margin:25px 0 15px 0;">
+                <p style="font-size:11px; color:#94a3b8; margin:0;">ShareMap Licensing Protection &copy; 2026</p>
+            </div>
+        </div>
+    \`;
+}`;
+
         let encodedContent = btoa(unescape(encodeURIComponent(newFileContent)));
 
         let bodyData = {
@@ -349,6 +479,7 @@
         }
     }
 </script>
+
 
 </body>
 </html>
