@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareMap Admin Dashboard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h2 { text-align: center; color: var(--primary); }
+        .card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { opacity: 0.9; }
+        .store-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .store-info div { font-size: 13px; color: #64748b; }
+        .actions button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .badge {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .active { background: #dcfce7; color: #166534; }
+        .expired { background: #fee2e2; color: #991b1b; }
+        .trial { background: #fef3c7; color: #92400e; }
+        .flex-row { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ShareMap License Admin</h2>
+
+    <!-- GitHub Config Card -->
+    <div class="card">
+        <h3>GitHub Settings</h3>
+        <label>Personal Access Token (PAT):</label>
+        <input type="password" id="githubToken" placeholder="Ilagay ang iyong GitHub Token dito">
+        <button onclick="loadLicenses()">I-load ang mga Lisensya</button>
+    </div>
+
+    <!-- Add / Edit Store Card -->
+    <div class="card">
+        <h3>Magdagdag / Mag-update ng Store</h3>
+        <label>Page Username:</label>
+        <input type="text" id="storeUsername" placeholder="halimbawa: storeusername">
+        
+        <label>Plan Type:</label>
+        <select id="planType">
+            <option value="trial">30-Day Free Trial</option>
+            <option value="bronze">Bronze Plan (P499/mo)</option>
+            <option value="platinum">Platinum Lifetime (P2,999)</option>
+        </select>
+
+        <label>Expiry Date (YYYY-MM-DD):</label>
+        <input type="date" id="expiryDate">
+
+        <button onclick="saveStoreLicense()" style="background-color: #16a34a;">I-save sa GitHub</button>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="card">
+        <h3>Lista ng mga Store</h3>
+        <input type="text" id="searchInput" placeholder="Mag-search ng Store Username..." onkeyup="filterStores()">
+        
+        <div class="flex-row">
+            <select id="filterStatus" onchange="filterStores()">
+                <option value="all">Lahat</option>
+                <option value="active">Active</option>
+                <option value="trial">Trial</option>
+                <option value="expired">Expired</option>
+            </select>
+        </div>
+
+        <div id="storeListContainer" style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+            <p style="text-align: center; color: #94a3b8;">I-load muna ang tokens para makita ang listahan.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // GitHub Repo Details (Naka-hardcode na batay sa iyong repo)
+    const REPO_OWNER = "sharemap-digital-address";
+    const REPO_NAME = "sendmessage-to-sellerpage";
+    const FILE_PATH = "licenses.js";
+
+    let licensesData = [];
+    let fileSha = "";
+
+    // Auto-load token mula sa localStorage kung meron na
+    window.onload = function() {
+        if(localStorage.getItem('gh_token')) {
+            document.getElementById('githubToken').value = localStorage.getItem('gh_token');
+            loadLicenses();
+        }
+        // Set default expiry date to 30 days from now
+        let d = new Date();
+        d.setDate(d.getDate() + 30);
+        document.getElementById('expiryDate').value = d.toISOString().split('T')[0];
+    };
+
+    async function loadLicenses() {
+        const token = document.getElementById('githubToken').value;
+        if(!token) {
+            alert("Pakilagay muna ang iyong GitHub Personal Access Token!");
+            return;
+        }
+        localStorage.setItem('gh_token', token);
+
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+        
+        try {
+            let response = await fetch(url, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if(!response.ok) throw new Error("Nabigong basahin ang file mula sa GitHub.");
+            
+            let data = await response.json();
+            fileSha = data.sha;
+            
+            // Decode Base64 content ng licenses.js
+            let decodedContent = decodeURIComponent(escape(atob(data.content)));
+            
+            // I-parse ang JSON mula sa "const LICENSES = [...];"
+            let jsonString = decodedContent.substring(decodedContent.indexOf('['), decodedContent.lastIndexOf(']') + 1);
+            licensesData = JSON.parse(jsonString);
+            
+            renderStoreList(licensesData);
+            alert("Tagumpay na nai-load ang mga lisensya!");
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    }
+
+    function renderStores(data) {
+        const container = document.getElementById('storeListContainer');
+        container.innerHTML = "";
+
+        if(data.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #94a3b8;">Walang nakitang account.</p>`;
+            return;
+        }
+
+        data.forEach(store => {
+            let today = new Date().toISOString().split('T')[0];
+            let statusClass = "active";
+            let statusText = "Active";
+
+            if(store.expiry < today) {
+                statusClass = "expired";
+                statusText = "Expired";
+            } else if(store.plan === "trial") {
+                statusClass = "trial";
+                statusText = "Trial";
+            }
+
+            let div = document.createElement('div');
+            div.className = "store-item";
+            div.innerHTML = `
+                <div class="store-info">
+                    <strong>@${store.username}</strong> <span class="badge ${statusClass}">${statusText}</span>
+                    <div>Plan: ${store.plan} | Expiry: ${store.expiry}</div>
+                </div>
+                <div class="actions">
+                    <button onclick="editStore('${store.username}')" style="background:#2563eb;">Edit</button>
+                    <button onclick="deleteStore('${store.username}')" style="background:#dc2626;">Del</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function filterStores() {
+        let query = document.getElementById('searchInput').value.toLowerCase();
+        let statusFilter = document.getElementById('filterStatus').value;
+        let today = new Date().toISOString().split('T')[0];
+
+        let filtered = licensesData.filter(store => {
+            let matchName = store.username.toLowerCase().includes(query);
+            let isExpired = store.expiry < today;
+            
+            if(statusFilter === "active" && (isExpired || store.plan === "trial")) return false;
+            if(statusFilter === "trial" && store.plan !== "trial") return false;
+            if(statusFilter === "expired" && !isExpired) return false;
+
+            return matchName;
+        });
+
+        renderStores(filtered);
+    }
+
+    function editStore(username) {
+        let store = licensesData.find(s => s.username === username);
+        if(store) {
+            document.getElementById('storeUsername').value = store.username;
+            document.getElementById('planType').value = store.plan;
+            document.getElementById('expiryDate').value = store.expiry;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+    }
+
+    async function saveStoreLicense() {
+        const token = document.getElementById('githubToken').value;
+        const username = document.getElementById('storeUsername').value.trim().toLowerCase();
+        const plan = document.getElementById('planType').value;
+        const expiry = document.getElementById('expiryDate').value;
+
+        if(!token || !username || !expiry) {
+            alert("Pakipunan ang lahat ng kinakailangang impormasyon.");
+            return;
+        }
+
+        // Hanapin kung umiiral na, i-update o idagdag
+        let index = licensesData.findIndex(s => s.username === username);
+        if(index >= 0) {
+            licensesData[index].plan = plan;
+            licensesData[index].expiry = expiry;
+        } else {
+            licensesData.push({ username, plan, expiry });
+        }
+
+        await updateGitHubFile();
+    }
+
+    async function deleteStore(username) {
+        if(!confirm(`Sigurado ka bang gusto mong tanggalin si @${username}?`)) return;
+
+        licensesData = licensesData.filter(s => s.username !== username);
+        await updateGitHubFile();
+    }
+
+    async function updateGitHubFile() {
+        const token = document.getElementById('githubToken').value;
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+
+        // I-format pabalik sa istruktura ng licenses.js file mo
+        let newFileContent = "const LICENSES = " + JSON.stringify(licensesData, null, 4) + ";";
+        let encodedContent = btoa(unescape(encodeURIComponent(newFileContent)));
+
+        let bodyData = {
+            message: "Update licenses via Admin Dashboard",
+            content: encodedContent,
+            sha: fileSha
+        };
+
+        try {
+            let response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bodyData)
+            });
+
+            if(!response.ok) throw new Error("Nabigong i-save ang mga pagbabago sa GitHub.");
+
+            let resJson = await response.json();
+            fileSha = resJson.content.sha;
+            
+            renderStores(licensesData);
+            alert("Tagumpay na nai-save sa GitHub! Hintayin ang ilang minuto bago mag-reflect sa live page.");
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    }
+</script>
+
+</body>
+</html>
