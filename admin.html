@@ -92,13 +92,13 @@
     <div class="card">
         <h3>Magdagdag / Mag-update ng Store</h3>
         <label>Page Username:</label>
-        <input type="text" id="storeUsername" placeholder="halimbawa: storeusername">
+        <input type="text" id="storeUsername" placeholder="halimbawa: marjevinsoylucena">
         
         <label>Plan Type:</label>
-        <select id="planType">
-            <option value="trial">30-Day Free Trial</option>
-            <option value="bronze">Bronze Plan (P499/mo)</option>
-            <option value="platinum">Platinum Lifetime (P2,999)</option>
+        <select id="planType" onchange="autoSetExpiry()">
+            <option value="TRIAL_ACCESS">7-Day Free Trial</option>
+            <option value="BRONZE_MONTHLY">Bronze Monthly (P499/mo)</option>
+            <option value="PLATINUM_LIFETIME">Platinum Lifetime (No Expiry)</option>
         </select>
 
         <label>Expiry Date (YYYY-MM-DD):</label>
@@ -122,34 +122,44 @@
         </div>
 
         <div id="storeListContainer" style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
-            <p style="text-align: center; color: #94a3b8;">I-load muna ang tokens para makita ang listahan.</p>
+            <p style="text-align: center; color: #94a3b8;">I-load muna ang token para makita ang listahan.</p>
         </div>
     </div>
 </div>
 
 <script>
-    // GitHub Repo Details (Naka-hardcode na batay sa iyong repo)
     const REPO_OWNER = "sharemap-digital-address";
     const REPO_NAME = "sendmessage-to-sellerpage";
     const FILE_PATH = "licenses.js";
 
-    let licensesData = [];
+    let licensesData = {};
     let fileSha = "";
 
-    // Auto-load token mula sa localStorage kung meron na
     window.onload = function() {
         if(localStorage.getItem('gh_token')) {
             document.getElementById('githubToken').value = localStorage.getItem('gh_token');
             loadLicenses();
         }
-        // Set default expiry date to 30 days from now
-        let d = new Date();
-        d.setDate(d.getDate() + 30);
-        document.getElementById('expiryDate').value = d.toISOString().split('T')[0];
+        autoSetExpiry();
     };
 
+    function autoSetExpiry() {
+        let plan = document.getElementById('planType').value;
+        let d = new Date();
+
+        if (plan === "PLATINUM_LIFETIME") {
+            document.getElementById('expiryDate').value = "";
+            document.getElementById('expiryDate').disabled = true;
+        } else {
+            document.getElementById('expiryDate').disabled = false;
+            let days = (plan === "TRIAL_ACCESS") ? 7 : 30;
+            d.setDate(d.getDate() + days);
+            document.getElementById('expiryDate').value = d.toISOString().split('T')[0];
+        }
+    }
+
     async function loadLicenses() {
-        const token = document.getElementById('githubToken').value;
+        const token = document.getElementById('githubToken').value.trim();
         if(!token) {
             alert("Pakilagay muna ang iyong GitHub Personal Access Token!");
             return;
@@ -167,17 +177,26 @@
             let data = await response.json();
             fileSha = data.sha;
             
-            // Decode Base64 content ng licenses.js
+            // Decode Base64 content
             let decodedContent = decodeURIComponent(escape(atob(data.content)));
             
-            // I-parse ang JSON mula sa "const LICENSES = [...];"
-            let jsonString = decodedContent.substring(decodedContent.indexOf('['), decodedContent.lastIndexOf(']') + 1);
-            licensesData = JSON.parse(jsonString);
+            // Parse ang SHAREMAP_LICENSES Object mula sa licenses.js
+            let start = decodedContent.indexOf('{');
+            let end = decodedContent.lastIndexOf('}');
             
-            renderStoreList(licensesData);
+            if (start !== -1 && end !== -1) {
+                let objectString = decodedContent.substring(start, end + 1);
+                // Clean JS comments bago i-parse
+                objectString = objectString.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''); 
+                licensesData = eval('(' + objectString + ')');
+            } else {
+                licensesData = {};
+            }
+            
+            renderStores(licensesData);
             alert("Tagumpay na nai-load ang mga lisensya!");
         } catch (error) {
-            alert("Error: " + error.message);
+            alert("Error sa pag-parse: " + error.message);
         }
     }
 
@@ -185,34 +204,39 @@
         const container = document.getElementById('storeListContainer');
         container.innerHTML = "";
 
-        if(data.length === 0) {
+        let keys = Object.keys(data);
+        if(keys.length === 0) {
             container.innerHTML = `<p style="text-align: center; color: #94a3b8;">Walang nakitang account.</p>`;
             return;
         }
 
-        data.forEach(store => {
-            let today = new Date().toISOString().split('T')[0];
+        let today = new Date().toISOString().split('T')[0];
+
+        keys.forEach(username => {
+            let store = data[username];
             let statusClass = "active";
             let statusText = "Active";
 
-            if(store.expiry < today) {
+            if (store.expiry && today > store.expiry) {
                 statusClass = "expired";
                 statusText = "Expired";
-            } else if(store.plan === "trial") {
+            } else if (store.plan === "TRIAL_ACCESS") {
                 statusClass = "trial";
                 statusText = "Trial";
             }
+
+            let expiryLabel = store.expiry ? store.expiry : "Lifetime";
 
             let div = document.createElement('div');
             div.className = "store-item";
             div.innerHTML = `
                 <div class="store-info">
-                    <strong>@${store.username}</strong> <span class="badge ${statusClass}">${statusText}</span>
-                    <div>Plan: ${store.plan} | Expiry: ${store.expiry}</div>
+                    <strong>@${username}</strong> <span class="badge ${statusClass}">${statusText}</span>
+                    <div>Plan: ${store.plan} | Expiry: ${expiryLabel}</div>
                 </div>
                 <div class="actions">
-                    <button onclick="editStore('${store.username}')" style="background:#2563eb;">Edit</button>
-                    <button onclick="deleteStore('${store.username}')" style="background:#dc2626;">Del</button>
+                    <button onclick="editStore('${username}')" style="background:#2563eb;">Edit</button>
+                    <button onclick="deleteStore('${username}')" style="background:#dc2626;">Del</button>
                 </div>
             `;
             container.appendChild(div);
@@ -224,49 +248,58 @@
         let statusFilter = document.getElementById('filterStatus').value;
         let today = new Date().toISOString().split('T')[0];
 
-        let filtered = licensesData.filter(store => {
-            let matchName = store.username.toLowerCase().includes(query);
-            let isExpired = store.expiry < today;
-            
-            if(statusFilter === "active" && (isExpired || store.plan === "trial")) return false;
-            if(statusFilter === "trial" && store.plan !== "trial") return false;
-            if(statusFilter === "expired" && !isExpired) return false;
+        let filtered = {};
 
-            return matchName;
+        Object.keys(licensesData).forEach(username => {
+            let store = licensesData[username];
+            let matchName = username.toLowerCase().includes(query);
+            let isExpired = store.expiry && today > store.expiry;
+
+            let keep = true;
+
+            if(statusFilter === "active" && (isExpired || store.plan === "TRIAL_ACCESS")) keep = false;
+            if(statusFilter === "trial" && store.plan !== "TRIAL_ACCESS") keep = false;
+            if(statusFilter === "expired" && !isExpired) keep = false;
+
+            if(matchName && keep) {
+                filtered[username] = store;
+            }
         });
 
         renderStores(filtered);
     }
 
     function editStore(username) {
-        let store = licensesData.find(s => s.username === username);
+        let store = licensesData[username];
         if(store) {
-            document.getElementById('storeUsername').value = store.username;
+            document.getElementById('storeUsername').value = username;
             document.getElementById('planType').value = store.plan;
-            document.getElementById('expiryDate').value = store.expiry;
+            document.getElementById('expiryDate').value = store.expiry || "";
+            if (store.plan === "PLATINUM_LIFETIME") {
+                document.getElementById('expiryDate').disabled = true;
+            } else {
+                document.getElementById('expiryDate').disabled = false;
+            }
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
     }
 
     async function saveStoreLicense() {
-        const token = document.getElementById('githubToken').value;
+        const token = document.getElementById('githubToken').value.trim();
         const username = document.getElementById('storeUsername').value.trim().toLowerCase();
         const plan = document.getElementById('planType').value;
-        const expiry = document.getElementById('expiryDate').value;
+        const expiry = (plan === "PLATINUM_LIFETIME") ? null : document.getElementById('expiryDate').value;
 
-        if(!token || !username || !expiry) {
-            alert("Pakipunan ang lahat ng kinakailangang impormasyon.");
+        if(!token || !username) {
+            alert("Pakipunan ang store username.");
             return;
         }
 
-        // Hanapin kung umiiral na, i-update o idagdag
-        let index = licensesData.findIndex(s => s.username === username);
-        if(index >= 0) {
-            licensesData[index].plan = plan;
-            licensesData[index].expiry = expiry;
-        } else {
-            licensesData.push({ username, plan, expiry });
-        }
+        licensesData[username] = {
+            status: "ACTIVE",
+            plan: plan,
+            expiry: expiry
+        };
 
         await updateGitHubFile();
     }
@@ -274,20 +307,22 @@
     async function deleteStore(username) {
         if(!confirm(`Sigurado ka bang gusto mong tanggalin si @${username}?`)) return;
 
-        licensesData = licensesData.filter(s => s.username !== username);
+        delete licensesData[username];
         await updateGitHubFile();
     }
 
     async function updateGitHubFile() {
-        const token = document.getElementById('githubToken').value;
+        const token = document.getElementById('githubToken').value.trim();
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
 
-        // I-format pabalik sa istruktura ng licenses.js file mo
-        let newFileContent = "const LICENSES = " + JSON.stringify(licensesData, null, 4) + ";";
+        // I-format pabalik sa eksaktong istruktura ng licenses.js
+        let headerComments = `// ==========================================\n// SHAREMAP CENTRAL LICENSE DATABASE\n// ==========================================\n\n`;
+        let newFileContent = headerComments + "const SHAREMAP_LICENSES = " + JSON.stringify(licensesData, null, 4) + ";\n\n" + checkShareMapAccess.toString() + "\n\n" + showBlockScreen.toString();
+        
         let encodedContent = btoa(unescape(encodeURIComponent(newFileContent)));
 
         let bodyData = {
-            message: "Update licenses via Admin Dashboard",
+            message: "Update SHAREMAP_LICENSES via Admin Dashboard",
             content: encodedContent,
             sha: fileSha
         };
@@ -308,7 +343,7 @@
             fileSha = resJson.content.sha;
             
             renderStores(licensesData);
-            alert("Tagumpay na nai-save sa GitHub! Hintayin ang ilang minuto bago mag-reflect sa live page.");
+            alert("Tagumpay na nai-save sa GitHub!");
         } catch (error) {
             alert("Error: " + error.message);
         }
