@@ -73,6 +73,26 @@
         .expired { background: #fee2e2; color: #991b1b; }
         .trial { background: #fef3c7; color: #92400e; }
         .flex-row { display: flex; gap: 10px; }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -96,7 +116,7 @@
         
         <label>Plan Type:</label>
         <select id="planType" onchange="autoSetExpiry()">
-            <option value="TRIAL_ACCESS">7-Day Free Trial</option>
+            <option value="TRIAL_ACCESS">30-Day Free Trial</option>
             <option value="BRONZE_MONTHLY">Bronze Monthly (P499/mo)</option>
             <option value="PLATINUM_LIFETIME">Platinum Lifetime (No Expiry)</option>
         </select>
@@ -127,13 +147,32 @@
     </div>
 </div>
 
+<!-- Modal Activation Dialog -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:#2563eb;">🚀 Send Activation Link</h3>
+        <p style="font-size:13px; color:#64748b;">Nai-save na sa GitHub! Ilagay ang detalye para ma-generate ang activation email & template.</p>
+        
+        <label>Pangalan ng Store / Admin Name:</label>
+        <input type="text" id="clientName" placeholder="halimbawa: Marjevin Soy Products Admin">
+
+        <label>Email Address ng Client:</label>
+        <input type="email" id="clientEmail" placeholder="halimbawa: client@gmail.com">
+
+        <button onclick="sendActivationEmail()" style="background-color: #2563eb; margin-top: 10px;">📧 I-open ang Email App & Copy Template</button>
+        <button onclick="closeModal()" style="background-color: #64748b; margin-top: 0;">Isara (Skip)</button>
+    </div>
+</div>
+
 <script>
     const REPO_OWNER = "sharemap-digital-address";
     const REPO_NAME = "sendmessage-to-sellerpage";
     const FILE_PATH = "licenses.js";
+    const BASE_GATEWAY_URL = "https://sharemap-digital-address.github.io/sendmessage-to-sellerpage/index.html";
 
     let licensesData = {};
     let fileSha = "";
+    let lastSavedUsername = "";
 
     window.onload = function() {
         if(localStorage.getItem('gh_token')) {
@@ -152,7 +191,7 @@
             document.getElementById('expiryDate').disabled = true;
         } else {
             document.getElementById('expiryDate').disabled = false;
-            let days = (plan === "TRIAL_ACCESS") ? 7 : 30;
+            let days = 30;
             d.setDate(d.getDate() + days);
             document.getElementById('expiryDate').value = d.toISOString().split('T')[0];
         }
@@ -314,6 +353,7 @@
             expiry: expiry
         };
 
+        lastSavedUsername = username;
         await updateGitHubFile();
     }
 
@@ -402,10 +442,70 @@
             fileSha = resJson.content.sha;
             
             renderStores(licensesData);
-            alert("Tagumpay na nai-save sa GitHub!");
+            
+            // Buksan ang Dialog Popup
+            document.getElementById('clientName').value = lastSavedUsername;
+            document.getElementById('emailModal').style.display = 'flex';
+
         } catch (error) {
             alert("Error: " + error.message);
         }
+    }
+
+    function closeModal() {
+        document.getElementById('emailModal').style.display = 'none';
+    }
+
+    function sendActivationEmail() {
+        const storeAdmin = document.getElementById('clientName').value.trim() || lastSavedUsername;
+        const email = document.getElementById('clientEmail').value.trim();
+        const gatewayLink = `${BASE_GATEWAY_URL}?page=${lastSavedUsername}`;
+
+        const subject = "🚀 Ang iyong ShareMap Order Gateway Link & Setup Guide (30-Day Free Trial Activated!)";
+        
+        const emailBody = `Magandang araw po, ${storeAdmin}! 👋
+
+Maraming salamat sa pag-interes sa ShareMap Order Gateway System. Opisyal nang naka-activate ang iyong 30-Day Free Trial simula ngayong araw!
+
+Ito ang iyong sariling automated ordering link na maaari mong ikabit sa iyong Facebook Page:
+🔗 Iyong Order Link: ${gatewayLink}
+
+📋 Gabay kung paano ito ikakabit sa iyong Facebook Page:
+
+* Ilagay bilang 'Order Now' Button: Pumunta sa iyong Facebook Page settings, i-edit ang Action Button, at piliin ang "Order Now" o "Start Order" gamit ang link sa taas.
+
+* I-set up ang Messenger Auto-Reply: Para sa mabilis na transaksyon, kopyahin at gamitin ang gabay na ito para sa mga nagme-message sa page mo:
+
+Sample Automation:
+
+"Hi! Thanks for messaging ${storeAdmin}! Yes, we deliver po. Delivery fee charges may apply.
+
+📍 Located at: [Ilagay ang address/landmark dito]
+📝 To order, kindly click the Order Button below to fill up the form and view our menu, then send back to us!
+[I-attach ang menu o logo image dito]
+Mode of Payments: COD / GCASH
+🛒 [ Click Here to Start Your Order & GPS Pin ] -> ${gatewayLink}"
+
+Malaya mo itong magagamit nang walang bayad sa loob ng 30 araw. Pagkatapos ng trial, maaari kang magpatuloy sa pamamagitan ng ating Bronze Plan (₱499/month) o mag-upgrade sa Platinum Lifetime (₱2,999) para wala ka nang isiping buwanang bayarin.
+
+Kung may tanong ka o kailangan ng tulong sa pag-setup, mag-reply lamang sa email na ito o mag-message sa aming Page. Happy selling!
+
+Magalang na sumasainyo,
+Jayrome
+ShareMap Developer & Administrator`;
+
+        // Kopyahin sa Clipboard
+        navigator.clipboard.writeText(emailBody).then(() => {
+            alert("✅ Na-copy na sa clipboard ang kumpletong template message!");
+        }).catch(err => {
+            console.log("Clipboard error: ", err);
+        });
+
+        // Buksan ang Email App
+        const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = mailtoUrl;
+
+        closeModal();
     }
 </script>
 
