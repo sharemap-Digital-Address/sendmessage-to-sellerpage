@@ -12,11 +12,6 @@ const SHAREMAP_LICENSES = {
         "status": "TRIAL",
         "plan": "TRIAL_ACCESS",
         "expiry": "2026-10-17"
-    },
-    "marjevinsoylucena": {
-        "status": "ACTIVE",
-        "plan": "TRIAL_ACCESS",
-        "expiry": "2026-10-18"
     }
 };
 
