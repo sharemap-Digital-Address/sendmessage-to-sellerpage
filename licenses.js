@@ -3,11 +3,6 @@
 // ==========================================
 
 const SHAREMAP_LICENSES = {
-    "sample.online.store": {
-        "status": "ACTIVE",
-        "plan": "BRONZE_MONTHLY",
-        "expiry": "2026-11-10"
-    },
     "test.resto.page": {
         "status": "TRIAL",
         "plan": "TRIAL_ACCESS",
