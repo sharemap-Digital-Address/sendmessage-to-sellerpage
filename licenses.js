@@ -3,25 +3,15 @@
 // ==========================================
 
 const SHAREMAP_LICENSES = {
-    // PLATINUM (LIFETIME ACCESS - WALANG EXPIRATION)
-    "marjevinsoylucena": {
-        status: "ACTIVE",
-        plan: "PLATINUM_LIFETIME",
-        expiry: null // Lifetime, walang katapusan
-    },
-    
-    // BRONZE (MONTHLY SUBSCRIPTION - MAY EXPIRATION DATE)
     "sample.online.store": {
-        status: "ACTIVE",
-        plan: "BRONZE_MONTHLY",
-        expiry: "2026-11-10" // Format: YYYY-MM-DD (Halimbawa: Oct 10 nabayaran, valid hanggang Nov 10)
+        "status": "ACTIVE",
+        "plan": "BRONZE_MONTHLY",
+        "expiry": "2026-11-10"
     },
-
-    // TRIAL (7 DAYS FREE TRIAL)
     "test.resto.page": {
-        status: "TRIAL",
-        plan: "TRIAL_ACCESS",
-        expiry: "2026-10-17"
+        "status": "TRIAL",
+        "plan": "TRIAL_ACCESS",
+        "expiry": "2026-10-17"
     }
 };
 
@@ -36,26 +26,22 @@ function checkShareMapAccess() {
     }
 
     const license = SHAREMAP_LICENSES[pageId];
-    const today = new Date().toISOString().split('T')[0]; // Kuha ang petsa ngayon (YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0];
 
-    // CHECK 1: KUNG WALA SA DATABASE O INACTIVE
     if (!license || license.status === "INACTIVE") {
         showBlockScreen("⚠️ Walang Lisensya / Inactive Account", "Ang store na ito ay wala pang lisensya sa ShareMap. Mangyaring makipag-ugnayan sa provider.");
         return;
     }
 
-    // CHECK 2: KUNG EXPIRED NA ANG MONTHLY O TRIAL PLAN
     if (license.expiry && today > license.expiry) {
         showBlockScreen("🚫 Expired License", `Ang inyong ${license.plan === 'BRONZE_MONTHLY' ? 'Bronze Monthly' : 'Trial'} Access ay nag-expire noong ${license.expiry}. Paki-renew ang inyong subscription sa ShareMap.`);
         return;
     }
 
-    // KUNG VALID ANG LISENSYA
     console.log(`✅ Access Granted for ${pageId} [Plan: ${license.plan}]`);
 }
 
 function showBlockScreen(title, message) {
-    // Palitan ang link sa ibaba ng iyong opisyal na Facebook Messenger link o Contact Link
     const CONTACT_LINK = "https://m.me/sharemap.digital.address"; 
 
     document.body.innerHTML = `
