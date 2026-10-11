@@ -12,6 +12,11 @@ const SHAREMAP_LICENSES = {
         "status": "ACTIVE",
         "plan": "PLATINUM_LIFETIME",
         "expiry": null
+    },
+    "miniburger": {
+        "status": "ACTIVE",
+        "plan": "BRONZE_MONTHLY",
+        "expiry": "2026-11-10"
     }
 };
 
