@@ -59,9 +59,9 @@
         .store-info div { font-size: 13px; color: #64748b; }
         .actions button {
             width: auto;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-left: 5px;
+            padding: 5px 8px;
+            font-size: 11px;
+            margin-left: 3px;
         }
         .badge {
             padding: 3px 6px;
@@ -150,8 +150,8 @@
 <!-- Modal Activation Dialog -->
 <div class="modal-overlay" id="emailModal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:#2563eb;">🚀 Send Activation Link</h3>
-        <p style="font-size:13px; color:#64748b;">Nai-save na sa GitHub! Ilagay ang detalye para ma-generate ang activation email & template.</p>
+        <h3 style="margin-top:0; color:#2563eb;">🚀 Send Activation / Renewal Link</h3>
+        <p style="font-size:13px; color:#64748b;">Nai-save na sa GitHub! Ilagay ang detalye para ma-generate ang kaukulang email & template.</p>
         
         <label>Pangalan ng Store / Admin Name:</label>
         <input type="text" id="clientName" placeholder="halimbawa: Marjevin Soy Products Admin">
@@ -173,6 +173,8 @@
     let licensesData = {};
     let fileSha = "";
     let lastSavedUsername = "";
+    let lastSavedPlan = "";
+    let lastSavedExpiry = "";
 
     window.onload = function() {
         if(localStorage.getItem('gh_token')) {
@@ -287,6 +289,7 @@
                     <div>Plan: ${store.plan} | Expiry: ${expiryLabel}</div>
                 </div>
                 <div class="actions">
+                    <button onclick="renewStore('${username}')" style="background:#8b5cf6;">Renew</button>
                     <button onclick="editStore('${username}')" style="background:#2563eb;">Edit</button>
                     <button onclick="deleteStore('${username}')" style="background:#dc2626;">Del</button>
                 </div>
@@ -336,6 +339,20 @@
         }
     }
 
+    function renewStore(username) {
+        document.getElementById('storeUsername').value = username;
+        document.getElementById('planType').value = "BRONZE_MONTHLY";
+        
+        let d = new Date();
+        d.setDate(d.getDate() + 30);
+        
+        document.getElementById('expiryDate').value = d.toISOString().split('T')[0];
+        document.getElementById('expiryDate').disabled = false;
+
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        alert(`Nai-set na si @${username} sa Bronze Plan (+30 Days). Pindutin ang 'I-save sa GitHub' para kumpirmahin at magpadala ng email!`);
+    }
+
     async function saveStoreLicense() {
         const token = document.getElementById('githubToken').value.trim();
         const username = document.getElementById('storeUsername').value.trim().toLowerCase();
@@ -354,17 +371,20 @@
         };
 
         lastSavedUsername = username;
-        await updateGitHubFile();
+        lastSavedPlan = plan;
+        lastSavedExpiry = expiry;
+
+        await updateGitHubFile(true); // true = buksan ang email dialog
     }
 
     async function deleteStore(username) {
         if(!confirm(`Sigurado ka bang gusto mong tanggalin si @${username}?`)) return;
 
         delete licensesData[username];
-        await updateGitHubFile();
+        await updateGitHubFile(false); // false = HUWAG buksan ang email dialog
     }
 
-    async function updateGitHubFile() {
+    async function updateGitHubFile(showEmailModal = false) {
         const token = document.getElementById('githubToken').value.trim();
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
 
@@ -443,9 +463,12 @@
             
             renderStores(licensesData);
             
-            // Buksan ang Dialog Popup
-            document.getElementById('clientName').value = lastSavedUsername;
-            document.getElementById('emailModal').style.display = 'flex';
+            if (showEmailModal) {
+                document.getElementById('clientName').value = lastSavedUsername;
+                document.getElementById('emailModal').style.display = 'flex';
+            } else {
+                alert("Tagumpay na nabura ang store sa GitHub!");
+            }
 
         } catch (error) {
             alert("Error: " + error.message);
@@ -461,9 +484,12 @@
         const email = document.getElementById('clientEmail').value.trim();
         const gatewayLink = `${BASE_GATEWAY_URL}?page=${lastSavedUsername}`;
 
-        const subject = "🚀 Ang iyong ShareMap Order Gateway Link & Setup Guide (30-Day Free Trial Activated!)";
-        
-        const emailBody = `Magandang araw po, ${storeAdmin}! 👋
+        let subject = "";
+        let emailBody = "";
+
+        if (lastSavedPlan === "TRIAL_ACCESS") {
+            subject = "🚀 Ang iyong ShareMap Order Gateway Link & Setup Guide (30-Day Free Trial Activated!)";
+            emailBody = `Magandang araw po, ${storeAdmin}! 👋
 
 Maraming salamat sa pag-interes sa ShareMap Order Gateway System. Opisyal nang naka-activate ang iyong 30-Day Free Trial simula ngayong araw!
 
@@ -486,13 +512,52 @@ Sample Automation:
 Mode of Payments: COD / GCASH
 🛒 [ Click Here to Start Your Order & GPS Pin ] -> ${gatewayLink}"
 
-Malaya mo itong magagamit nang walang bayad sa loob ng 30 araw. Pagkatapos ng trial, maaari kang magpatuloy sa pamamagitan ng ating Bronze Plan (₱499/month) o mag-upgrade sa Platinum Lifetime (₱2,999) para wala ka nang isiping buwanang bayarin.
+Malaya mo itong magagamit nang walang bayad sa loob ng 30 araw (Expiry Date: ${lastSavedExpiry}). Pagkatapos ng trial, maaari kang magpatuloy sa pamamagitan ng ating Bronze Plan (₱499/month) o mag-upgrade sa Platinum Lifetime (₱2,999) para wala ka nang isiping buwanang bayarin.
 
 Kung may tanong ka o kailangan ng tulong sa pag-setup, mag-reply lamang sa email na ito o mag-message sa aming Page. Happy selling!
 
 Magalang na sumasainyo,
 Jayrome
 ShareMap Developer & Administrator`;
+
+        } else if (lastSavedPlan === "BRONZE_MONTHLY") {
+            subject = "🎉 Active Bronze Monthly Subscription - ShareMap Gateway (P499/mo)";
+            emailBody = `Magandang araw po, ${storeAdmin}! 👋
+
+Maraming salamat sa iyong tiwala at sa pagtangkilik sa ShareMap Order Gateway System! 
+
+Ang inyong Bronze Monthly Plan (₱499/month) ay matagumpay nang naka-activate/na-renew. Ang inyong access ay valid hanggang: 🗓️ ${lastSavedExpiry}.
+
+Ito ang inyong live automated ordering link:
+🔗 Order Gateway Link: ${gatewayLink}
+
+Maaari niyo itong ipagpatuloy na gamitin sa inyong 'Order Now' Action Button at Messenger Auto-Reply Greetings sa Facebook Page.
+
+Paalala: Magpapadala kami ng pahabol na paalala bago sumapit ang petsa ng expiry (${lastSavedExpiry}) para sa inyong susunod na renewal.
+
+Maraming salamat at tuloy-tuloy sa pagpapalago ng negosyo!
+
+Magalang na sumasainyo,
+Jayrome
+ShareMap Developer & Administrator`;
+
+        } else if (lastSavedPlan === "PLATINUM_LIFETIME") {
+            subject = "👑 VIP Welcome! Platinum Lifetime Access Activated - ShareMap Gateway";
+            emailBody = `Magandang araw po, ${storeAdmin}! 👋
+
+Isang malaking karangalan at maraming salamat sa pag-avail ng aming Platinum Lifetime Access (₱2,999)! 
+
+Opisyal nang LIFETIME at WALANG EXPIRY ang inyong lisensya sa ShareMap Order Gateway System. Hindi niyo na kailangang mag-alala sa anumang buwanang bayarin!
+
+Ito ang inyong permanenteng automated ordering link:
+🔗 Order Gateway Link: ${gatewayLink}
+
+Maraming salamat sa inyong buong suporta sa ShareMap. Nais namin ang patuloy na tagumpay at paglago ng inyong negosyo!
+
+Magalang na sumasainyo,
+Jayrome
+ShareMap Developer & Administrator`;
+        }
 
         // Kopyahin sa Clipboard
         navigator.clipboard.writeText(emailBody).then(() => {
